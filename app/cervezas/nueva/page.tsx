@@ -35,6 +35,16 @@ function FormularioCerveza() {
     api.get("/api/ingredientes/").then((res) => setIngredientesDisponibles(res.data));
   }, []);
 
+  const [nombreOriginal, setNombreOriginal] = useState("");
+
+  useEffect(() => {
+    if (forkId) {
+      api.get(`/api/cervezas/${forkId}`).then((res) => {
+        setNombreOriginal(res.data.nombre);
+      }).catch(() => {});
+    }
+  }, [forkId]);
+  
   const agregarIngrediente = () =>
     setFilas([...filas, { ingrediente_id: 0, cantidad: "", unidad: "g" }]);
 
@@ -110,6 +120,11 @@ function FormularioCerveza() {
             ? "Parte de la receta original y dale tu toque."
             : "Comparte tu elaboración con la comunidad."}
         </p>
+        {nombreOriginal && (
+            <p className="mt-3 rounded-md bg-espuma px-4 py-3 text-sm text-tostado">
+              Basada en: <span className="font-medium text-malta">{nombreOriginal}</span>
+            </p>
+          )}
 
         <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-6">
           <div>

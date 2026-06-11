@@ -17,28 +17,39 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-8 text-sm font-medium text-tostado sm:flex">
-          <Link href="/" className="transition-colors hover:text-ambar-oscuro">
-            Explorar
+          <Link href="/recetas" className="transition-colors hover:text-ambar-oscuro">
+            Recetas
           </Link>
           <Link href="/ranking" className="transition-colors hover:text-ambar-oscuro">
             Ranking
           </Link>
+          {usuario && (
+            <Link href="/mis-recetas" className="transition-colors hover:text-ambar-oscuro">
+              Mis recetas
+            </Link>
+          )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {usuario ? (
             <>
               <Link
-                href="/cervezas/nueva"
-                className="rounded-md bg-ambar px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ambar-oscuro"
-              >
-                Subir cerveza
-              </Link>
-              <button
-                onClick={logout}
+                href="/perfil"
                 className="text-sm font-medium text-tostado transition-colors hover:text-malta"
               >
-                Salir
+                Mi perfil
+              </Link>
+              <div className="h-4 w-px bg-linea" />
+              <button
+                onClick={logout}
+                className="flex items-center gap-1.5 text-sm font-medium text-tostado transition-colors hover:text-malta"
+                title="Cerrar sesión"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
               </button>
             </>
           ) : (

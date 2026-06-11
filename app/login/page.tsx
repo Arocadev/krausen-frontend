@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -54,24 +55,10 @@ export default function LoginPage() {
             />
           </div>
 
-          <div>
-            <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-malta">
-              Contraseña
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-linea bg-white px-4 py-2.5 text-malta outline-none transition-colors focus:border-ambar"
-            />
-          </div>
+          <PasswordInput id="password" label="Contraseña" value={password} onChange={setPassword} />
 
           {error && (
-            <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">
-              {error}
-            </p>
+            <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>
           )}
 
           <button

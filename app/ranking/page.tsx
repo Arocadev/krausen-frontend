@@ -9,8 +9,8 @@ type EntradaRanking = {
   id: number;
   nombre: string;
   estilo: string | null;
-  media: number;
-  total_valoraciones: number;
+  username: string;
+  total_likes: number;
 };
 
 export default function RankingPage() {
@@ -39,9 +39,9 @@ export default function RankingPage() {
       ) : ranking.length === 0 ? (
         <div className="mt-10 rounded-lg border border-dashed border-linea bg-espuma/60 py-20 text-center">
           <p className="font-[family-name:var(--font-lora)] text-xl text-malta">
-            Todavía no hay valoraciones este mes
+            Todavía no hay me gustas este mes
           </p>
-          <p className="mt-2 text-tostado">Valora recetas para que aparezcan aquí.</p>
+          <p className="mt-2 text-tostado">Dale me gusta a las recetas que te molen.</p>
         </div>
       ) : (
         <ol className="mt-10 space-y-3">
@@ -66,11 +66,16 @@ export default function RankingPage() {
                   <h2 className="truncate font-medium text-malta group-hover:text-ambar-oscuro">
                     {r.nombre}
                   </h2>
-                  {r.estilo && <p className="text-sm text-tostado">{r.estilo}</p>}
+                  <p className="text-sm text-tostado">
+                    {r.estilo && <span>{r.estilo} · </span>}
+                    por {r.username}
+                  </p>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium text-malta">★ {r.media}</p>
-                  <p className="text-xs text-tostado">{r.total_valoraciones} valoraciones</p>
+                <div className="flex items-center gap-1.5 text-malta">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                  <span className="font-medium">{r.total_likes}</span>
                 </div>
               </Link>
             </li>

@@ -12,6 +12,7 @@ type Cerveza = {
   alcohol: number | null;
   amargor: number | null;
   parent_id: number | null;
+  username: string | null;
   created_at: string;
 };
 
@@ -68,12 +69,15 @@ export default function RecetasPage() {
                   {c.descripcion}
                 </p>
               )}
-              <div className="mt-4 flex gap-4 text-sm text-tostado/80">
-                {c.alcohol != null && <span>{c.alcohol}% vol.</span>}
-                {c.amargor != null && <span>{c.amargor} IBU</span>}
-                {c.parent_id != null && (
-                  <span className="text-ambar-oscuro">Versión</span>
-                )}
+              <div className="mt-4 flex items-center justify-between text-sm text-tostado/80">
+                <div className="flex gap-4">
+                  {c.alcohol != null && <span>{c.alcohol}% vol.</span>}
+                  {c.amargor != null && <span>{c.amargor} IBU</span>}
+                  {c.parent_id != null && (
+                    <span className="text-ambar-oscuro">Versión</span>
+                  )}
+                </div>
+                {c.username && <span>por {c.username}</span>}
               </div>
             </Link>
           ))}

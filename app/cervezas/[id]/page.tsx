@@ -24,63 +24,68 @@ type Cerveza = {
   amargor: number | null;
   parent_id: number | null;
   usuario_id: number;
+  username: string | null;
   created_at: string;
   ingredientes: Ingrediente[];
   pasos: Paso[];
-};
-
-type Valoracion = {
-  id: number;
-  usuario_id: number;
-  nota: number;
-  comentario: string | null;
-  created_at: string;
 };
 
 export default function DetalleCervezaPage() {
   const { id } = useParams();
   const { usuario } = useAuth();
   const [cerveza, setCerveza] = useState<Cerveza | null>(null);
-  const [valoraciones, setValoraciones] = useState<Valoracion[]>([]);
-  const [media, setMedia] = useState<number>(0);
   const [cargando, setCargando] = useState(true);
-
-  const [nota, setNota] = useState(7);
-  const [comentario, setComentario] = useState("");
-  const [errorValoracion, setErrorValoracion] = useState("");
-  const [enviando, setEnviando] = useState(false);
+  const [totalLikes, setTotalLikes] = useState(0);
+  const [dado, setDado] = useState(false);
+  const [enviandoLike, setEnviandoLike] = useState(false);
 
   const cargarDatos = () => {
-    Promise.all([
-      api.get(`/api/cervezas/${id}`),
-      api.get(`/api/cervezas/${id}/valoraciones`),
-      api.get(`/api/cervezas/${id}/media`),
-    ])
-      .then(([c, v, m]) => {
-        setCerveza(c.data);
-        setValoraciones(v.data);
-        setMedia(m.data.media);
-      })
+    api.get(`/api/cervezas/${id}`)
+      .then((res) => setCerveza(res.data))
       .catch(() => {})
       .finally(() => setCargando(false));
+
+    api.get(`/api/cervezas/${id}/me-gusta`)
+      .then((res) => setTotalLikes(res.data.total))
+      .catch(() => {});
+  };
+
+  const cargarEstadoLike = () => {
+    if (usuario) {
+      api.get(`/api/cervezas/${id}/me-gusta/estado`)
+        .then((res) => {
+          setDado(res.data.dado);
+          setTotalLikes(res.data.total);
+        })
+        .catch(() => {});
+    }
   };
 
   useEffect(() => {
-    if (id) cargarDatos();
-  }, [id]);
-
-  const enviarValoracion = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorValoracion("");
-    setEnviando(true);
-    try {
-      await api.post(`/api/cervezas/${id}/valoraciones`, { nota, comentario: comentario || null });
-      setComentario("");
+    if (id) {
       cargarDatos();
+      cargarEstadoLike();
+    }
+  }, [id, usuario]);
+
+  const toggleLike = async () => {
+    if (enviandoLike) return;
+    setEnviandoLike(true);
+    try {
+      if (dado) {
+        await api.delete(`/api/cervezas/${id}/me-gusta`);
+        setDado(false);
+        setTotalLikes((prev) => prev - 1);
+      } else {
+        await api.post(`/api/cervezas/${id}/me-gusta`);
+        setDado(true);
+        setTotalLikes((prev) => prev + 1);
+      }
     } catch (err: any) {
-      setErrorValoracion(err.response?.data?.detail || "No se pudo enviar la valoración");
+      const msg = err.response?.data?.detail || "";
+      if (msg.includes("propia")) alert(msg);
     } finally {
-      setEnviando(false);
+      setEnviandoLike(false);
     }
   };
 
@@ -113,6 +118,15 @@ export default function DetalleCervezaPage() {
           <h1 className="mt-4 font-[family-name:var(--font-lora)] text-4xl font-semibold text-malta">
             {cerveza.nombre}
           </h1>
+
+          {cerveza.username && (
+            <p className="mt-3 text-sm text-tostado">
+              Creada por <span className="font-medium text-malta">{cerveza.username}</span>
+              {" · "}
+              {new Date(cerveza.created_at).toLocaleDateString("es-ES")}
+            </p>
+          )}
+
           {cerveza.descripcion && (
             <p className="mt-4 max-w-2xl text-lg leading-relaxed text-tostado">
               {cerveza.descripcion}
@@ -120,11 +134,6 @@ export default function DetalleCervezaPage() {
           )}
 
           <div className="mt-6 flex flex-wrap items-center gap-6 text-sm text-tostado">
-            {media > 0 && (
-              <span className="font-medium text-malta">
-                ★ {media} <span className="font-normal text-tostado">({valoraciones.length})</span>
-              </span>
-            )}
             {cerveza.alcohol != null && <span>{cerveza.alcohol}% vol.</span>}
             {cerveza.amargor != null && <span>{cerveza.amargor} IBU</span>}
             {cerveza.litros != null && <span>{cerveza.litros} L</span>}
@@ -135,14 +144,41 @@ export default function DetalleCervezaPage() {
             )}
           </div>
 
-          {usuario && (
-            <Link
-              href={`/cervezas/nueva?fork=${cerveza.id}`}
-              className="mt-8 inline-block rounded-md border border-ambar px-5 py-2.5 text-sm font-medium text-ambar-oscuro transition-colors hover:bg-ambar hover:text-white"
-            >
-              Hacer mi versión
-            </Link>
-          )}
+          <div className="mt-8 flex items-center gap-4">
+            {usuario && (
+              <button
+                onClick={toggleLike}
+                disabled={enviandoLike}
+                className={`flex items-center gap-2 rounded-md border px-5 py-2.5 text-sm font-medium transition-colors ${
+                  dado
+                    ? "border-ambar bg-ambar text-white hover:bg-ambar-oscuro"
+                    : "border-tostado/30 text-tostado hover:border-ambar hover:text-ambar-oscuro"
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={dado ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                {totalLikes}
+              </button>
+            )}
+            {!usuario && totalLikes > 0 && (
+              <span className="flex items-center gap-2 text-sm text-tostado">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                {totalLikes} me gusta{totalLikes !== 1 ? "s" : ""}
+              </span>
+            )}
+
+            {usuario && (
+              <Link
+                href={`/cervezas/nueva?fork=${cerveza.id}`}
+                className="rounded-md border border-tostado/30 px-5 py-2.5 text-sm font-medium text-tostado transition-colors hover:border-ambar hover:text-ambar-oscuro"
+              >
+                Hacer mi versión
+              </Link>
+            )}
+          </div>
         </div>
       </section>
 
@@ -189,76 +225,6 @@ export default function DetalleCervezaPage() {
                 </li>
               ))}
             </ol>
-          )}
-        </div>
-      </section>
-
-      <section className="border-t border-linea bg-espuma/50">
-        <div className="mx-auto max-w-4xl px-6 py-14">
-          <h2 className="font-[family-name:var(--font-lora)] text-2xl font-semibold text-malta">
-            Valoraciones
-          </h2>
-
-          {usuario ? (
-            <form onSubmit={enviarValoracion} className="mt-6 rounded-lg border border-linea bg-white p-6">
-              <div className="flex flex-wrap items-center gap-4">
-                <label htmlFor="nota" className="text-sm font-medium text-malta">
-                  Tu nota
-                </label>
-                <select
-                  id="nota"
-                  value={nota}
-                  onChange={(e) => setNota(Number(e.target.value))}
-                  className="rounded-md border border-linea bg-white px-3 py-2 text-malta outline-none focus:border-ambar"
-                >
-                  {Array.from({ length: 11 }, (_, i) => (
-                    <option key={i} value={i}>{i}</option>
-                  ))}
-                </select>
-              </div>
-              <textarea
-                placeholder="Comentario (opcional)"
-                value={comentario}
-                onChange={(e) => setComentario(e.target.value)}
-                rows={3}
-                className="mt-4 w-full rounded-md border border-linea bg-white px-4 py-2.5 text-malta outline-none transition-colors focus:border-ambar"
-              />
-              {errorValoracion && (
-                <p className="mt-3 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">
-                  {errorValoracion}
-                </p>
-              )}
-              <button
-                type="submit"
-                disabled={enviando}
-                className="mt-4 rounded-md bg-ambar px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ambar-oscuro disabled:opacity-60"
-              >
-                {enviando ? "Enviando…" : "Valorar"}
-              </button>
-            </form>
-          ) : (
-            <p className="mt-4 text-tostado">
-              <Link href="/login" className="text-ambar-oscuro hover:underline">Entra</Link>{" "}
-              para dejar tu valoración.
-            </p>
-          )}
-
-          {valoraciones.length > 0 && (
-            <ul className="mt-8 space-y-4">
-              {valoraciones.map((v) => (
-                <li key={v.id} className="rounded-lg border border-linea bg-white p-5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-malta">★ {v.nota}/10</span>
-                    <span className="text-xs text-tostado">
-                      {new Date(v.created_at).toLocaleDateString("es-ES")}
-                    </span>
-                  </div>
-                  {v.comentario && (
-                    <p className="mt-2 leading-relaxed text-tostado">{v.comentario}</p>
-                  )}
-                </li>
-              ))}
-            </ul>
           )}
         </div>
       </section>

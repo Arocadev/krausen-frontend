@@ -13,6 +13,7 @@ type Cerveza = {
   alcohol: number | null;
   amargor: number | null;
   parent_id: number | null;
+  username: string | null;
   created_at: string;
 };
 
@@ -44,7 +45,7 @@ export default function Home() {
             <Link href={usuario ? "/cervezas/nueva" : "/registro"} className="rounded-md bg-ambar px-6 py-3 font-medium text-white transition-colors hover:bg-ambar-oscuro">
               {usuario ? "Subir cerveza" : "Empieza a compartir"}
             </Link>
-            <Link href="#recetas" className="rounded-md border border-tostado/30 px-6 py-3 font-medium text-tostado transition-colors hover:border-tostado hover:text-malta">
+            <Link href="/recetas" className="rounded-md border border-tostado/30 px-6 py-3 font-medium text-tostado transition-colors hover:border-tostado hover:text-malta">
               Ver recetas
             </Link>
           </div>
@@ -90,12 +91,15 @@ export default function Home() {
                     {c.descripcion}
                   </p>
                 )}
-                <div className="mt-4 flex gap-4 text-sm text-tostado/80">
-                  {c.alcohol != null && <span>{c.alcohol}% vol.</span>}
-                  {c.amargor != null && <span>{c.amargor} IBU</span>}
-                  {c.parent_id != null && (
-                    <span className="text-ambar-oscuro">Versión</span>
-                  )}
+                <div className="mt-4 flex items-center justify-between text-sm text-tostado/80">
+                  <div className="flex gap-4">
+                    {c.alcohol != null && <span>{c.alcohol}% vol.</span>}
+                    {c.amargor != null && <span>{c.amargor} IBU</span>}
+                    {c.parent_id != null && (
+                      <span className="text-ambar-oscuro">Versión</span>
+                    )}
+                  </div>
+                  {c.username && <span>por {c.username}</span>}
                 </div>
               </Link>
             ))}

@@ -41,16 +41,14 @@ export default function MisRecetasPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-14">
-      <div className="mb-8 flex items-end justify-between">
-        <h1 className="font-[family-name:var(--font-lora)] text-3xl font-semibold text-malta">
-          Mis recetas
-        </h1>
-      </div>
+      <h1 className="mb-8 font-[family-name:var(--font-lora)] text-3xl font-semibold text-malta">
+        Mis recetas
+      </h1>
 
       {cargandoDatos ? (
         <p className="py-16 text-center text-tostado">Cargando…</p>
       ) : cervezas.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-linea bg-espuma/60 py-20 text-center">
+        <div className="rounded-lg border border-dashed border-linea bg-white py-20 text-center">
           <p className="font-[family-name:var(--font-lora)] text-xl text-malta">
             Todavía no has publicado ninguna receta
           </p>
@@ -67,7 +65,7 @@ export default function MisRecetasPage() {
               className="group rounded-lg border border-linea bg-white p-6 transition-all hover:border-ambar/50 hover:shadow-[0_2px_12px_rgba(92,58,33,0.08)]"
             >
               {c.estilo && (
-                <span className="inline-block rounded-full bg-espuma px-3 py-1 text-xs font-medium uppercase tracking-wide text-ambar-oscuro">
+                <span className="inline-block rounded-full bg-ambar/25 px-3 py-1 text-xs font-medium uppercase tracking-wide text-ambar-oscuro">
                   {c.estilo}
                 </span>
               )}

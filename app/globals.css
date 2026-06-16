@@ -1,18 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  --color-crema: #FAF6EF;
-  --color-espuma: #F1E9DA;
+  --color-crema: #F7F0E4;
+  --color-espuma: #EDE4D3;
   --color-ambar: #C8861B;
   --color-ambar-claro: #E0A33C;
   --color-ambar-oscuro: #9A6612;
   --color-tostado: #5C3A21;
   --color-malta: #33220F;
   --color-carbon: #1F1610;
-  --color-linea: #E5DCCB;
+  --color-linea: #DDD3C2;
+  --color-navbar: #473221;
 }
 
 body {
-  background-color: var(--color-crema);
+  background-color: var(--color-espuma);
   color: var(--color-malta);
 }

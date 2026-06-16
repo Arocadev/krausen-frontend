@@ -70,10 +70,6 @@ export default function PerfilPage() {
               <span className="font-medium text-malta">{perfil.email}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-tostado">Rol</span>
-              <span className="font-medium text-malta">{perfil.rol}</span>
-            </div>
-            <div className="flex justify-between">
               <span className="text-sm text-tostado">Miembro desde</span>
               <span className="font-medium text-malta">
                 {new Date(perfil.created_at).toLocaleDateString("es-ES")}

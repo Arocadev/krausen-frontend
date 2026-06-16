@@ -37,7 +37,7 @@ export default function RankingPage() {
       {cargando ? (
         <p className="py-16 text-center text-tostado">Cargando ranking…</p>
       ) : ranking.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-linea bg-espuma/60 py-20 text-center">
+        <div className="mt-10 rounded-lg border border-dashed border-linea bg-white py-20 text-center">
           <p className="font-[family-name:var(--font-lora)] text-xl text-malta">
             Todavía no hay me gustas este mes
           </p>
@@ -56,8 +56,8 @@ export default function RankingPage() {
                     r.posicion === 1
                       ? "bg-ambar text-white"
                       : r.posicion <= 3
-                      ? "bg-espuma text-ambar-oscuro"
-                      : "bg-espuma/60 text-tostado"
+                      ? "bg-ambar/15 text-ambar-oscuro"
+                      : "bg-ambar/10 text-tostado"
                   }`}
                 >
                   {r.posicion}

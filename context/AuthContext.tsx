@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Usuario = {
+  id: number;
   email: string;
   rol: string;
 } | null;
@@ -25,7 +26,7 @@ function decodificarToken(token: string): Usuario {
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
     if (payload.exp * 1000 < Date.now()) return null;
-    return { email: payload.sub, rol: payload.rol };
+    return { id: payload.id, email: payload.sub, rol: payload.rol };
   } catch {
     return null;
   }

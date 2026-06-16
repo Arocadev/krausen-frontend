@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   title: "Krausen — Recetas de cerveza artesanal",
   description:
     "Comunidad para compartir, descubrir y versionar recetas de cerveza artesanal.",
+  icons: { icon: "data:," },
 };
 
 export default function RootLayout({

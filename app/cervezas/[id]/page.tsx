@@ -38,6 +38,7 @@ export default function DetalleCervezaPage() {
   const [totalLikes, setTotalLikes] = useState(0);
   const [dado, setDado] = useState(false);
   const [enviandoLike, setEnviandoLike] = useState(false);
+  const [tieneForks, setTieneForks] = useState(false);
 
   const cargarDatos = () => {
     api.get(`/api/cervezas/${id}`)
@@ -47,6 +48,10 @@ export default function DetalleCervezaPage() {
 
     api.get(`/api/cervezas/${id}/me-gusta`)
       .then((res) => setTotalLikes(res.data.total))
+      .catch(() => {});
+
+    api.get(`/api/cervezas/tiene-forks/${id}`)
+      .then((res) => setTieneForks(res.data.tiene_forks))
       .catch(() => {});
   };
 
@@ -108,10 +113,10 @@ export default function DetalleCervezaPage() {
 
   return (
     <main>
-      <section className="border-b border-linea bg-espuma">
+      <section className="border-b border-linea bg-crema">
         <div className="mx-auto max-w-4xl px-6 py-14">
           {cerveza.estilo && (
-            <span className="inline-block rounded-full bg-white px-3 py-1 text-xs font-medium uppercase tracking-wide text-ambar-oscuro">
+            <span className="inline-block rounded-full bg-ambar/25 px-3 py-1 text-xs font-medium uppercase tracking-wide text-ambar-oscuro">
               {cerveza.estilo}
             </span>
           )}
@@ -178,6 +183,20 @@ export default function DetalleCervezaPage() {
                 Hacer mi versión
               </Link>
             )}
+
+            {usuario && cerveza.usuario_id === usuario.id && !tieneForks && (
+              <Link
+                href={`/cervezas/${cerveza.id}/editar`}
+                className="rounded-md border border-tostado/30 px-5 py-2.5 text-sm font-medium text-tostado transition-colors hover:border-ambar hover:text-ambar-oscuro"
+              >
+                Editar
+              </Link>
+            )}
+            {usuario && cerveza.usuario_id === usuario.id && tieneForks && (
+              <span className="text-sm text-tostado/60">
+                No editable — tiene versiones
+              </span>
+            )}
           </div>
         </div>
       </section>
@@ -213,7 +232,7 @@ export default function DetalleCervezaPage() {
             <ol className="mt-5 space-y-5">
               {cerveza.pasos.map((paso) => (
                 <li key={paso.id} className="flex gap-4">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-espuma text-sm font-medium text-ambar-oscuro">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ambar/15 text-sm font-medium text-ambar-oscuro">
                     {paso.orden}
                   </span>
                   <div>

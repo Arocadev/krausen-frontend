@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import Temperaturas from "@/components/Temperaturas";
 
 type Ingrediente = {
   ingrediente: { id: number; nombre: string; tipo: string };
@@ -247,6 +248,10 @@ export default function DetalleCervezaPage() {
           )}
         </div>
       </section>
+      <Temperaturas
+        cervezaId={id as string}
+        esAutor={!!usuario && cerveza.usuario_id === usuario.id}
+      />
     </main>
   );
 }

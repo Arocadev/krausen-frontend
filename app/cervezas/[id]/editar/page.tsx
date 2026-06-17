@@ -21,6 +21,8 @@ export default function EditarCervezaPage() {
   const [litros, setLitros] = useState("");
   const [alcohol, setAlcohol] = useState("");
   const [amargor, setAmargor] = useState("");
+  const [diasFermentacion, setDiasFermentacion] = useState("");
+  const [intervaloHoras, setIntervaloHoras] = useState("");
   const [filas, setFilas] = useState<FilaIngrediente[]>([]);
   const [pasos, setPasos] = useState<FilaPaso[]>([]);
   const [error, setError] = useState("");
@@ -41,6 +43,8 @@ export default function EditarCervezaPage() {
       setLitros(c.litros?.toString() || "");
       setAlcohol(c.alcohol?.toString() || "");
       setAmargor(c.amargor?.toString() || "");
+      setDiasFermentacion(c.dias_fermentacion?.toString() || "");
+      setIntervaloHoras(c.intervalo_horas?.toString() || "");
       setFilas(
         c.ingredientes?.map((ing: any) => ({
           ingrediente_id: ing.ingrediente.id,
@@ -89,6 +93,8 @@ export default function EditarCervezaPage() {
         alcohol: alcohol ? Number(alcohol) : null,
         amargor: amargor ? Number(amargor) : null,
         parent_id: null,
+        dias_fermentacion: diasFermentacion ? Number(diasFermentacion) : null,
+        intervalo_horas: intervaloHoras ? Number(intervaloHoras) : null,
         ingredientes: filas
           .filter((f) => f.ingrediente_id && f.cantidad)
           .map((f) => ({
@@ -181,6 +187,32 @@ export default function EditarCervezaPage() {
             <div>
               <label className="mb-1.5 block text-sm font-medium text-malta">Amargor (IBU)</label>
               <input type="number" min="0" max="120" value={amargor} onChange={(e) => setAmargor(e.target.value)} className={inputClase} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-malta">Días de fermentación</label>
+              <select value={diasFermentacion} onChange={(e) => setDiasFermentacion(e.target.value)} className={inputClase}>
+                <option value="">Sin seguimiento</option>
+                <option value="1">1 días</option>
+                <option value="3">3 días</option>
+                <option value="5">5 días</option>
+                <option value="7">7 días</option>
+                <option value="10">10 días</option>
+                <option value="14">14 días</option>
+                <option value="21">21 días</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-malta">Registrar cada</label>
+              <select value={intervaloHoras} onChange={(e) => setIntervaloHoras(e.target.value)} className={inputClase} disabled={!diasFermentacion}>
+                <option value="">Selecciona…</option>
+                <option value="4">4 horas</option>
+                <option value="6">6 horas</option>
+                <option value="8">8 horas</option>
+                <option value="12">12 horas</option>
+              </select>
             </div>
           </div>
 

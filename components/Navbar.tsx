@@ -17,6 +17,9 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-8 text-sm font-medium text-espuma/80 sm:flex">
+         <Link href="/cervezas/nueva" className="transition-colors hover:text-crema">
+            Crear receta
+          </Link>
           <Link href="/recetas" className="transition-colors hover:text-crema">
             Recetas
           </Link>
@@ -33,12 +36,7 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           {usuario ? (
             <>
-              <Link
-                href="/cervezas/nueva"
-                className="rounded-md bg-ambar px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ambar-oscuro"
-              >
-                Subir cerveza
-              </Link>
+             
               <Link
                 href="/perfil"
                 className="text-sm font-medium text-espuma/80 transition-colors hover:text-crema"

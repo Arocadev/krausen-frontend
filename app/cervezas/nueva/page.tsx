@@ -22,6 +22,8 @@ function FormularioCerveza() {
   const [litros, setLitros] = useState("");
   const [alcohol, setAlcohol] = useState("");
   const [amargor, setAmargor] = useState("");
+  const [diasFermentacion, setDiasFermentacion] = useState("");
+  const [intervaloHoras, setIntervaloHoras] = useState("");
   const [filas, setFilas] = useState<FilaIngrediente[]>([]);
   const [pasos, setPasos] = useState<FilaPaso[]>([]);
   const [error, setError] = useState("");
@@ -44,13 +46,11 @@ function FormularioCerveza() {
       }).catch(() => {});
     }
   }, [forkId]);
-  
+
   const agregarIngrediente = () =>
     setFilas([...filas, { ingrediente_id: 0, cantidad: "", unidad: "g" }]);
-
   const quitarIngrediente = (i: number) =>
     setFilas(filas.filter((_, idx) => idx !== i));
-
   const actualizarFila = (i: number, campo: keyof FilaIngrediente, valor: string) => {
     const nuevas = [...filas];
     nuevas[i] = { ...nuevas[i], [campo]: campo === "ingrediente_id" ? Number(valor) : valor } as FilaIngrediente;
@@ -58,9 +58,7 @@ function FormularioCerveza() {
   };
 
   const agregarPaso = () => setPasos([...pasos, { descripcion: "", duracion_min: "" }]);
-
   const quitarPaso = (i: number) => setPasos(pasos.filter((_, idx) => idx !== i));
-
   const actualizarPaso = (i: number, campo: keyof FilaPaso, valor: string) => {
     const nuevos = [...pasos];
     nuevos[i] = { ...nuevos[i], [campo]: valor };
@@ -80,6 +78,8 @@ function FormularioCerveza() {
         alcohol: alcohol ? Number(alcohol) : null,
         amargor: amargor ? Number(amargor) : null,
         parent_id: forkId ? Number(forkId) : null,
+        dias_fermentacion: diasFermentacion ? Number(diasFermentacion) : null,
+        intervalo_horas: intervaloHoras ? Number(intervaloHoras) : null,
         ingredientes: filas
           .filter((f) => f.ingrediente_id && f.cantidad)
           .map((f) => ({
@@ -121,10 +121,10 @@ function FormularioCerveza() {
             : "Comparte tu elaboración con la comunidad."}
         </p>
         {nombreOriginal && (
-            <p className="mt-3 rounded-md bg-espuma px-4 py-3 text-sm text-tostado">
-              Basada en: <span className="font-medium text-malta">{nombreOriginal}</span>
-            </p>
-          )}
+          <p className="mt-3 rounded-md bg-ambar/10 px-4 py-3 text-sm text-tostado">
+            Basada en: <span className="font-medium text-malta">{nombreOriginal}</span>
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-6">
           <div>
@@ -183,6 +183,30 @@ function FormularioCerveza() {
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-malta">Días de fermentación</label>
+              <select value={diasFermentacion} onChange={(e) => setDiasFermentacion(e.target.value)} className={inputClase}>
+                <option value="">Sin seguimiento</option>
+                <option value="5">5 días</option>
+                <option value="7">7 días</option>
+                <option value="10">10 días</option>
+                <option value="14">14 días</option>
+                <option value="21">21 días</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-malta">Registrar cada</label>
+              <select value={intervaloHoras} onChange={(e) => setIntervaloHoras(e.target.value)} className={inputClase} disabled={!diasFermentacion}>
+                <option value="">Selecciona…</option>
+                <option value="4">4 horas</option>
+                <option value="6">6 horas</option>
+                <option value="8">8 horas</option>
+                <option value="12">12 horas</option>
+              </select>
+            </div>
+          </div>
+
           <div>
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-malta">Ingredientes</label>
@@ -203,10 +227,7 @@ function FormularioCerveza() {
                   ))}
                 </select>
                 <input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  placeholder="Cant."
+                  type="number" step="0.1" min="0" placeholder="Cant."
                   value={fila.cantidad}
                   onChange={(e) => actualizarFila(i, "cantidad", e.target.value)}
                   className="w-24 rounded-md border border-linea bg-white px-3 py-2 text-sm text-malta outline-none focus:border-ambar"
@@ -238,20 +259,17 @@ function FormularioCerveza() {
             </div>
             {pasos.map((paso, i) => (
               <div key={i} className="mt-3 flex gap-2">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-espuma text-sm font-medium text-ambar-oscuro">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ambar/15 text-sm font-medium text-ambar-oscuro">
                   {i + 1}
                 </span>
                 <input
-                  type="text"
-                  placeholder="Describe el paso…"
+                  type="text" placeholder="Describe el paso…"
                   value={paso.descripcion}
                   onChange={(e) => actualizarPaso(i, "descripcion", e.target.value)}
                   className="flex-1 rounded-md border border-linea bg-white px-3 py-2 text-sm text-malta outline-none focus:border-ambar"
                 />
                 <input
-                  type="number"
-                  min="0"
-                  placeholder="min"
+                  type="number" min="0" placeholder="min"
                   value={paso.duracion_min}
                   onChange={(e) => actualizarPaso(i, "duracion_min", e.target.value)}
                   className="w-20 rounded-md border border-linea bg-white px-3 py-2 text-sm text-malta outline-none focus:border-ambar"

@@ -35,12 +35,18 @@ export default function Home() {
           </div>
         )}
         {usuario && (
-          <div className="mt-12">
+          <div className="mt-12 flex items-center justify-center gap-4">
             <Link
               href="/recetas"
               className="rounded-md bg-ambar px-8 py-3.5 text-lg font-medium text-white transition-colors hover:bg-ambar-oscuro"
             >
               Explorar recetas
+            </Link>
+            <Link
+              href="/cervezas/nueva"
+              className="rounded-md border border-tostado/30 px-8 py-3.5 text-lg font-medium text-tostado transition-colors hover:border-tostado hover:text-malta"
+            >
+              Crear receta
             </Link>
           </div>
         )}

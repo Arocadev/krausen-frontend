@@ -140,7 +140,34 @@ function FormularioCerveza() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-malta">Estilo</label>
-              <input type="text" placeholder="IPA, Stout, Lager…" value={estilo} onChange={(e) => setEstilo(e.target.value)} className={inputClase} />
+              <select value={estilo} onChange={(e) => setEstilo(e.target.value)} className={inputClase}>
+                <option value="">Selecciona estilo…</option>
+                <option value="IPA">IPA</option>
+                <option value="APA">APA (American Pale Ale)</option>
+                <option value="Stout">Stout</option>
+                <option value="Porter">Porter</option>
+                <option value="Lager">Lager</option>
+                <option value="Pilsner">Pilsner</option>
+                <option value="Wheat Beer">Wheat Beer</option>
+                <option value="Belgian Ale">Belgian Ale</option>
+                <option value="Saison">Saison</option>
+                <option value="Amber Ale">Amber Ale</option>
+                <option value="Red Ale">Red Ale</option>
+                <option value="Brown Ale">Brown Ale</option>
+                <option value="Barley Wine">Barley Wine</option>
+                <option value="Sour">Sour</option>
+                <option value="Gose">Gose</option>
+                <option value="Kölsch">Kölsch</option>
+                <option value="Märzen">Märzen</option>
+                <option value="Bock">Bock</option>
+                <option value="Dunkel">Dunkel</option>
+                <option value="Hefeweizen">Hefeweizen</option>
+                <option value="Tripel">Tripel</option>
+                <option value="Dubbel">Dubbel</option>
+                <option value="NEIPA">NEIPA (New England IPA)</option>
+                <option value="Imperial Stout">Imperial Stout</option>
+                <option value="Otro">Otro</option>
+              </select>
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-malta">Litros</label>
@@ -152,7 +179,7 @@ function FormularioCerveza() {
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-malta">Amargor (IBU)</label>
-              <input type="number" min="0" value={amargor} onChange={(e) => setAmargor(e.target.value)} className={inputClase} />
+              <input type="number" min="0" max="120" value={amargor} onChange={(e) => setAmargor(e.target.value)} className={inputClase} />
             </div>
           </div>
 

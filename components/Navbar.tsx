@@ -34,6 +34,12 @@ export default function Navbar() {
           {usuario ? (
             <>
               <Link
+                href="/cervezas/nueva"
+                className="rounded-md bg-ambar px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ambar-oscuro"
+              >
+                Subir cerveza
+              </Link>
+              <Link
                 href="/perfil"
                 className="text-sm font-medium text-espuma/80 transition-colors hover:text-crema"
               >

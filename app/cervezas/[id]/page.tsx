@@ -6,6 +6,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import Temperaturas from "@/components/Temperaturas";
+import ArbolForks from "@/components/ArbolForks";
 
 type Ingrediente = {
   ingrediente: { id: number; nombre: string; tipo: string };
@@ -248,10 +249,12 @@ export default function DetalleCervezaPage() {
           )}
         </div>
       </section>
+    
       <Temperaturas
         cervezaId={id as string}
         esAutor={!!usuario && cerveza.usuario_id === usuario.id}
       />
+      <ArbolForks cervezaId={id as string} />
     </main>
   );
 }

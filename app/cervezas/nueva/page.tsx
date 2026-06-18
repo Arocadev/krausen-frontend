@@ -188,6 +188,8 @@ function FormularioCerveza() {
               <label className="mb-1.5 block text-sm font-medium text-malta">Días de fermentación</label>
               <select value={diasFermentacion} onChange={(e) => setDiasFermentacion(e.target.value)} className={inputClase}>
                 <option value="">Sin seguimiento</option>
+                <option value="1">1 días</option>
+                <option value="3">3 días</option>
                 <option value="5">5 días</option>
                 <option value="7">7 días</option>
                 <option value="10">10 días</option>

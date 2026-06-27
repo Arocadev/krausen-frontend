@@ -28,6 +28,7 @@ type Cerveza = {
   usuario_id: number;
   username: string | null;
   created_at: string;
+  activa: boolean;
   ingredientes: Ingrediente[];
   pasos: Paso[];
 };
@@ -41,10 +42,14 @@ export default function DetalleCervezaPage() {
   const [dado, setDado] = useState(false);
   const [enviandoLike, setEnviandoLike] = useState(false);
   const [tieneForks, setTieneForks] = useState(false);
+  const [activa, setActiva] = useState(true);
 
   const cargarDatos = () => {
     api.get(`/api/cervezas/${id}`)
-      .then((res) => setCerveza(res.data))
+      .then((res) => {
+        setCerveza(res.data);
+        setActiva(res.data.activa);
+      })
       .catch(() => {})
       .finally(() => setCargando(false));
 
@@ -96,6 +101,13 @@ export default function DetalleCervezaPage() {
     }
   };
 
+  const toggleActivacion = async () => {
+    try {
+      const res = await api.patch(`/api/cervezas/${id}/activacion`);
+      setActiva(res.data.activa);
+    } catch {}
+  };
+
   if (cargando) {
     return <p className="py-24 text-center text-tostado">Cargando receta…</p>;
   }
@@ -116,18 +128,30 @@ export default function DetalleCervezaPage() {
   return (
     <main>
       <section className="border-b border-linea bg-crema">
-        <div className="mx-auto max-w-4xl px-6 py-14">
+        <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
+
+          {/* Banner receta inactiva */}
+          {!activa && (
+            <div className="mb-4 inline-flex items-center gap-2 rounded-md bg-tostado/10 px-3 py-1.5 text-sm text-tostado">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+              </svg>
+              Receta desactivada — no aparece en los listados
+            </div>
+          )}
+
           {cerveza.estilo && (
             <span className="inline-block rounded-full bg-ambar/25 px-3 py-1 text-xs font-medium uppercase tracking-wide text-ambar-oscuro">
               {cerveza.estilo}
             </span>
           )}
-          <h1 className="mt-4 font-[family-name:var(--font-lora)] text-4xl font-semibold text-malta">
+
+          <h1 className="mt-3 font-[family-name:var(--font-lora)] text-3xl font-semibold text-malta sm:mt-4 sm:text-4xl">
             {cerveza.nombre}
           </h1>
 
           {cerveza.username && (
-            <p className="mt-3 text-sm text-tostado">
+            <p className="mt-2 text-sm text-tostado sm:mt-3">
               Creada por <span className="font-medium text-malta">{cerveza.username}</span>
               {" · "}
               {new Date(cerveza.created_at).toLocaleDateString("es-ES")}
@@ -135,12 +159,12 @@ export default function DetalleCervezaPage() {
           )}
 
           {cerveza.descripcion && (
-            <p className="mt-4 max-w-2xl text-lg leading-relaxed text-tostado">
+            <p className="mt-3 text-base leading-relaxed text-tostado sm:mt-4 sm:text-lg">
               {cerveza.descripcion}
             </p>
           )}
 
-          <div className="mt-6 flex flex-wrap items-center gap-6 text-sm text-tostado">
+          <div className="mt-5 flex flex-wrap gap-4 text-sm text-tostado sm:mt-6 sm:gap-6">
             {cerveza.alcohol != null && <span>{cerveza.alcohol}% vol.</span>}
             {cerveza.amargor != null && <span>{cerveza.amargor} IBU</span>}
             {cerveza.litros != null && <span>{cerveza.litros} L</span>}
@@ -151,12 +175,12 @@ export default function DetalleCervezaPage() {
             )}
           </div>
 
-          <div className="mt-8 flex items-center gap-4">
+          <div className="mt-6 flex flex-wrap items-center gap-3 sm:mt-8 sm:gap-4">
             {usuario && (
               <button
                 onClick={toggleLike}
                 disabled={enviandoLike}
-                className={`flex items-center gap-2 rounded-md border px-5 py-2.5 text-sm font-medium transition-colors ${
+                className={`flex items-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-colors sm:px-5 ${
                   dado
                     ? "border-ambar bg-ambar text-white hover:bg-ambar-oscuro"
                     : "border-tostado/30 text-tostado hover:border-ambar hover:text-ambar-oscuro"
@@ -168,6 +192,7 @@ export default function DetalleCervezaPage() {
                 {totalLikes}
               </button>
             )}
+
             {!usuario && totalLikes > 0 && (
               <span className="flex items-center gap-2 text-sm text-tostado">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -180,7 +205,7 @@ export default function DetalleCervezaPage() {
             {usuario && (
               <Link
                 href={`/cervezas/nueva?fork=${cerveza.id}`}
-                className="rounded-md border border-tostado/30 px-5 py-2.5 text-sm font-medium text-tostado transition-colors hover:border-ambar hover:text-ambar-oscuro"
+                className="rounded-md border border-tostado/30 px-4 py-2.5 text-sm font-medium text-tostado transition-colors hover:border-ambar hover:text-ambar-oscuro sm:px-5"
               >
                 Hacer mi versión
               </Link>
@@ -189,67 +214,83 @@ export default function DetalleCervezaPage() {
             {usuario && cerveza.usuario_id === usuario.id && !tieneForks && (
               <Link
                 href={`/cervezas/${cerveza.id}/editar`}
-                className="rounded-md border border-tostado/30 px-5 py-2.5 text-sm font-medium text-tostado transition-colors hover:border-ambar hover:text-ambar-oscuro"
+                className="rounded-md border border-tostado/30 px-4 py-2.5 text-sm font-medium text-tostado transition-colors hover:border-ambar hover:text-ambar-oscuro sm:px-5"
               >
                 Editar
               </Link>
             )}
+
             {usuario && cerveza.usuario_id === usuario.id && tieneForks && (
               <span className="text-sm text-tostado/60">
                 No editable — tiene versiones
               </span>
             )}
+
+            {usuario && cerveza.usuario_id === usuario.id && (
+              <button
+                onClick={toggleActivacion}
+                className={`rounded-md border px-4 py-2.5 text-sm font-medium transition-colors sm:px-5 ${
+                  activa
+                    ? "border-tostado/30 text-tostado hover:border-red-400 hover:text-red-600"
+                    : "border-green-600/30 text-green-700 hover:border-green-600"
+                }`}
+              >
+                {activa ? "Desactivar" : "Reactivar"}
+              </button>
+            )}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-4xl gap-12 px-6 py-14 md:grid-cols-2">
-        <div>
-          <h2 className="font-[family-name:var(--font-lora)] text-2xl font-semibold text-malta">
-            Ingredientes
-          </h2>
-          {cerveza.ingredientes.length === 0 ? (
-            <p className="mt-4 text-tostado">Sin ingredientes detallados.</p>
-          ) : (
-            <ul className="mt-5 divide-y divide-linea">
-              {cerveza.ingredientes.map((ing, i) => (
-                <li key={i} className="flex items-baseline justify-between py-3">
-                  <span className="text-malta">{ing.ingrediente.nombre}</span>
-                  <span className="text-sm text-tostado">
-                    {ing.cantidad} {ing.unidad}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+      <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-12">
+          <div>
+            <h2 className="font-[family-name:var(--font-lora)] text-2xl font-semibold text-malta">
+              Ingredientes
+            </h2>
+            {cerveza.ingredientes.length === 0 ? (
+              <p className="mt-4 text-tostado">Sin ingredientes detallados.</p>
+            ) : (
+              <ul className="mt-5 divide-y divide-linea">
+                {cerveza.ingredientes.map((ing, i) => (
+                  <li key={i} className="flex items-baseline justify-between py-3">
+                    <span className="text-malta">{ing.ingrediente.nombre}</span>
+                    <span className="shrink-0 pl-4 text-sm text-tostado">
+                      {ing.cantidad} {ing.unidad}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
-        <div>
-          <h2 className="font-[family-name:var(--font-lora)] text-2xl font-semibold text-malta">
-            Elaboración
-          </h2>
-          {cerveza.pasos.length === 0 ? (
-            <p className="mt-4 text-tostado">Sin pasos detallados.</p>
-          ) : (
-            <ol className="mt-5 space-y-5">
-              {cerveza.pasos.map((paso) => (
-                <li key={paso.id} className="flex gap-4">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ambar/15 text-sm font-medium text-ambar-oscuro">
-                    {paso.orden}
-                  </span>
-                  <div>
-                    <p className="leading-relaxed text-malta">{paso.descripcion}</p>
-                    {paso.duracion_min != null && (
-                      <p className="mt-1 text-sm text-tostado">{paso.duracion_min} min</p>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )}
+          <div>
+            <h2 className="font-[family-name:var(--font-lora)] text-2xl font-semibold text-malta">
+              Elaboración
+            </h2>
+            {cerveza.pasos.length === 0 ? (
+              <p className="mt-4 text-tostado">Sin pasos detallados.</p>
+            ) : (
+              <ol className="mt-5 space-y-5">
+                {cerveza.pasos.map((paso) => (
+                  <li key={paso.id} className="flex gap-4">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ambar/15 text-sm font-medium text-ambar-oscuro">
+                      {paso.orden}
+                    </span>
+                    <div>
+                      <p className="leading-relaxed text-malta">{paso.descripcion}</p>
+                      {paso.duracion_min != null && (
+                        <p className="mt-1 text-sm text-tostado">{paso.duracion_min} min</p>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
         </div>
       </section>
-    
+
       <Temperaturas
         cervezaId={id as string}
         esAutor={!!usuario && cerveza.usuario_id === usuario.id}

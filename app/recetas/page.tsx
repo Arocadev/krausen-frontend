@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 
+const LIMIT = 12;
+
 type Cerveza = {
   id: number;
   nombre: string;
@@ -19,6 +21,8 @@ type Cerveza = {
 export default function RecetasPage() {
   const [cervezas, setCervezas] = useState<Cerveza[]>([]);
   const [ultimas, setUltimas] = useState<Cerveza[]>([]);
+  const [total, setTotal] = useState(0);
+  const [pagina, setPagina] = useState(0);
   const [cargando, setCargando] = useState(true);
 
   const [busqueda, setBusqueda] = useState("");
@@ -28,19 +32,23 @@ export default function RecetasPage() {
   const [amargorMin, setAmargorMin] = useState("");
   const [amargorMax, setAmargorMax] = useState("");
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
+  const [hayFiltros, setHayFiltros] = useState(false);
 
-  const cargarTodas = () => {
-    api.get("/api/cervezas/").then((res) => {
-      setCervezas(res.data);
-      setUltimas(res.data.slice(0, 6));
-    }).catch(() => {}).finally(() => setCargando(false));
+  const totalPaginas = Math.ceil(total / LIMIT);
+
+  const cargarTodas = (pag: number = 0) => {
+    setCargando(true);
+    api.get(`/api/cervezas/?skip=${pag * LIMIT}&limit=${LIMIT}`)
+      .then((res) => {
+        setCervezas(res.data.cervezas);
+        setTotal(res.data.total);
+        if (pag === 0) setUltimas(res.data.cervezas.slice(0, 6));
+      })
+      .catch(() => {})
+      .finally(() => setCargando(false));
   };
 
-  useEffect(() => {
-    cargarTodas();
-  }, []);
-
-  const buscar = () => {
+  const buscar = (pag: number = 0) => {
     setCargando(true);
     const params = new URLSearchParams();
     if (busqueda) params.set("q", busqueda);
@@ -49,11 +57,35 @@ export default function RecetasPage() {
     if (alcoholMax) params.set("alcohol_max", alcoholMax);
     if (amargorMin) params.set("amargor_min", amargorMin);
     if (amargorMax) params.set("amargor_max", amargorMax);
+    params.set("skip", String(pag * LIMIT));
+    params.set("limit", String(LIMIT));
 
     api.get(`/api/cervezas/buscar?${params.toString()}`)
-      .then((res) => setCervezas(res.data))
+      .then((res) => {
+        setCervezas(res.data.cervezas);
+        setTotal(res.data.total);
+      })
       .catch(() => {})
       .finally(() => setCargando(false));
+  };
+
+  useEffect(() => {
+    cargarTodas(0);
+  }, []);
+
+  const handleBuscar = () => {
+    const activos = !!(busqueda || estilo || alcoholMin || alcoholMax || amargorMin || amargorMax);
+    setHayFiltros(activos);
+    setPagina(0);
+    if (activos) buscar(0);
+    else cargarTodas(0);
+  };
+
+  const handlePagina = (nueva: number) => {
+    setPagina(nueva);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (hayFiltros) buscar(nueva);
+    else cargarTodas(nueva);
   };
 
   const limpiarFiltros = () => {
@@ -63,24 +95,24 @@ export default function RecetasPage() {
     setAlcoholMax("");
     setAmargorMin("");
     setAmargorMax("");
-    cargarTodas();
+    setHayFiltros(false);
+    setPagina(0);
+    cargarTodas(0);
   };
-
-  const hayFiltrosActivos = busqueda || estilo || alcoholMin || alcoholMax || amargorMin || amargorMax;
 
   const inputClase = "w-full rounded-md border border-linea bg-white px-3 py-2 text-sm text-malta outline-none transition-colors focus:border-ambar";
 
   const TarjetaCerveza = ({ c }: { c: Cerveza }) => (
     <Link
       href={`/cervezas/${c.id}`}
-      className="group rounded-lg border border-linea bg-white p-6 transition-all hover:border-ambar/50 hover:shadow-[0_2px_12px_rgba(92,58,33,0.08)]"
+      className="group rounded-lg border border-linea bg-white p-5 transition-all hover:border-ambar/50 hover:shadow-[0_2px_12px_rgba(92,58,33,0.08)] sm:p-6"
     >
       {c.estilo && (
         <span className="inline-block rounded-full bg-ambar/25 px-3 py-1 text-xs font-medium uppercase tracking-wide text-ambar-oscuro">
           {c.estilo}
         </span>
       )}
-      <h3 className="mt-3 font-[family-name:var(--font-lora)] text-xl font-semibold text-malta group-hover:text-ambar-oscuro">
+      <h3 className="mt-3 font-[family-name:var(--font-lora)] text-lg font-semibold text-malta group-hover:text-ambar-oscuro sm:text-xl">
         {c.nombre}
       </h3>
       {c.descripcion && (
@@ -89,41 +121,88 @@ export default function RecetasPage() {
         </p>
       )}
       <div className="mt-4 flex items-center justify-between text-sm text-tostado/80">
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           {c.alcohol != null && <span>{c.alcohol}% vol.</span>}
           {c.amargor != null && <span>{c.amargor} IBU</span>}
           {c.parent_id != null && <span className="text-ambar-oscuro">Versión</span>}
         </div>
-        {c.username && <span>por {c.username}</span>}
+        {c.username && <span className="shrink-0 pl-2">por {c.username}</span>}
       </div>
     </Link>
   );
 
+  const Paginacion = () => {
+    if (totalPaginas <= 1) return null;
+    return (
+      <div className="mt-10 flex items-center justify-center gap-2">
+        <button
+          onClick={() => handlePagina(pagina - 1)}
+          disabled={pagina === 0}
+          className="rounded-md border border-linea bg-white px-4 py-2 text-sm font-medium text-tostado transition-colors hover:border-ambar hover:text-ambar-oscuro disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Anterior
+        </button>
+        <div className="flex gap-1">
+          {Array.from({ length: totalPaginas }, (_, i) => {
+            // Mostrar siempre primera, última, y las 2 adyacentes a la actual
+            const mostrar = i === 0 || i === totalPaginas - 1 || Math.abs(i - pagina) <= 1;
+            const esEllipsis = !mostrar && (i === 1 || i === totalPaginas - 2);
+            if (esEllipsis) return (
+              <span key={i} className="flex h-9 w-9 items-center justify-center text-sm text-tostado/50">…</span>
+            );
+            if (!mostrar) return null;
+            return (
+              <button
+                key={i}
+                onClick={() => handlePagina(i)}
+                className={`flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                  i === pagina
+                    ? "bg-ambar text-white"
+                    : "border border-linea bg-white text-tostado hover:border-ambar hover:text-ambar-oscuro"
+                }`}
+              >
+                {i + 1}
+              </button>
+            );
+          })}
+        </div>
+        <button
+          onClick={() => handlePagina(pagina + 1)}
+          disabled={pagina >= totalPaginas - 1}
+          className="rounded-md border border-linea bg-white px-4 py-2 text-sm font-medium text-tostado transition-colors hover:border-ambar hover:text-ambar-oscuro disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Siguiente
+        </button>
+      </div>
+    );
+  };
+
   return (
-    <main className="mx-auto max-w-6xl px-6 py-14">
-      <h1 className="font-[family-name:var(--font-lora)] text-4xl font-semibold text-malta">
+    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+      <h1 className="font-[family-name:var(--font-lora)] text-3xl font-semibold text-malta sm:text-4xl">
         Recetas
       </h1>
 
-      <div className="mt-8 flex gap-3">
+      {/* Buscador */}
+      <div className="mt-6 flex gap-2 sm:mt-8 sm:gap-3">
         <input
           type="text"
           placeholder="Buscar por nombre…"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && buscar()}
-          className="flex-1 rounded-md border border-linea bg-white px-4 py-2.5 text-malta outline-none transition-colors focus:border-ambar"
+          onKeyDown={(e) => e.key === "Enter" && handleBuscar()}
+          className="min-w-0 flex-1 rounded-md border border-linea bg-white px-4 py-2.5 text-sm text-malta outline-none transition-colors focus:border-ambar"
         />
         <button
-          onClick={buscar}
-          className="rounded-md bg-ambar px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ambar-oscuro"
+          onClick={handleBuscar}
+          className="rounded-md bg-ambar px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ambar-oscuro sm:px-5"
         >
           Buscar
         </button>
         <button
           onClick={() => setFiltrosAbiertos(!filtrosAbiertos)}
-          className={`rounded-md border px-4 py-2.5 text-sm font-medium transition-colors ${
-            filtrosAbiertos || hayFiltrosActivos
+          className={`rounded-md border px-3 py-2.5 text-sm font-medium transition-colors sm:px-4 ${
+            filtrosAbiertos || hayFiltros
               ? "border-ambar bg-ambar/10 text-ambar-oscuro"
               : "border-linea bg-white text-tostado hover:border-tostado"
           }`}
@@ -132,13 +211,14 @@ export default function RecetasPage() {
         </button>
       </div>
 
+      {/* Panel de filtros */}
       {filtrosAbiertos && (
-        <div className="mt-4 rounded-lg border border-linea bg-white p-6">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-            <div>
+        <div className="mt-3 rounded-lg border border-linea bg-white p-4 sm:mt-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="sm:col-span-2 lg:col-span-1">
               <label className="mb-1.5 block text-sm font-medium text-malta">Estilo</label>
               <select value={estilo} onChange={(e) => setEstilo(e.target.value)} className={inputClase}>
-                <option value="">Selecciona estilo…</option>
+                <option value="">Todos los estilos</option>
                 <option value="IPA">IPA</option>
                 <option value="APA">APA (American Pale Ale)</option>
                 <option value="Stout">Stout</option>
@@ -166,28 +246,30 @@ export default function RecetasPage() {
                 <option value="Otro">Otro</option>
               </select>
             </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-malta">Alcohol mín.</label>
-              <input type="number" step="0.1" min="0" placeholder="0" value={alcoholMin} onChange={(e) => setAlcoholMin(e.target.value)} className={inputClase} />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-malta">Alcohol máx.</label>
-              <input type="number" step="0.1" min="0" placeholder="100" value={alcoholMax} onChange={(e) => setAlcoholMax(e.target.value)} className={inputClase} />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-malta">IBU mín.</label>
-              <input type="number" min="0" placeholder="0" value={amargorMin} onChange={(e) => setAmargorMin(e.target.value)} className={inputClase} />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-malta">IBU máx.</label>
-              <input type="number" min="0" placeholder="200" value={amargorMax} onChange={(e) => setAmargorMax(e.target.value)} className={inputClase} />
+            <div className="grid grid-cols-2 gap-4 sm:col-span-2 lg:col-span-4 lg:grid-cols-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-malta">Alcohol mín.</label>
+                <input type="number" step="0.1" min="0" placeholder="0" value={alcoholMin} onChange={(e) => setAlcoholMin(e.target.value)} className={inputClase} />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-malta">Alcohol máx.</label>
+                <input type="number" step="0.1" min="0" placeholder="100" value={alcoholMax} onChange={(e) => setAlcoholMax(e.target.value)} className={inputClase} />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-malta">IBU mín.</label>
+                <input type="number" min="0" placeholder="0" value={amargorMin} onChange={(e) => setAmargorMin(e.target.value)} className={inputClase} />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-malta">IBU máx.</label>
+                <input type="number" min="0" placeholder="200" value={amargorMax} onChange={(e) => setAmargorMax(e.target.value)} className={inputClase} />
+              </div>
             </div>
           </div>
           <div className="mt-4 flex gap-3">
-            <button onClick={buscar} className="rounded-md bg-ambar px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ambar-oscuro">
+            <button onClick={handleBuscar} className="rounded-md bg-ambar px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ambar-oscuro">
               Aplicar filtros
             </button>
-            {hayFiltrosActivos && (
+            {hayFiltros && (
               <button onClick={limpiarFiltros} className="text-sm font-medium text-tostado hover:text-malta">
                 Limpiar filtros
               </button>
@@ -196,37 +278,44 @@ export default function RecetasPage() {
         </div>
       )}
 
-      {!hayFiltrosActivos && ultimas.length > 0 && (
-        <section className="mt-12">
+      {/* Últimas recetas — solo página 0 sin filtros */}
+      {!hayFiltros && pagina === 0 && ultimas.length > 0 && (
+        <section className="mt-10 sm:mt-12">
           <h2 className="font-[family-name:var(--font-lora)] text-2xl font-semibold text-malta">
             Últimas recetas
           </h2>
-          <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
             {ultimas.map((c) => <TarjetaCerveza key={c.id} c={c} />)}
           </div>
         </section>
       )}
 
-      <section className="mt-12">
-        <h2 className="font-[family-name:var(--font-lora)] text-2xl font-semibold text-malta">
-          {hayFiltrosActivos ? "Resultados" : "Todas las recetas"}
-        </h2>
-        <p className="mt-1 text-sm text-tostado">
-          {cervezas.length} receta{cervezas.length !== 1 ? "s" : ""}
-        </p>
+      {/* Todas / Resultados */}
+      <section className="mt-10 sm:mt-12">
+        <div className="flex items-baseline gap-3">
+          <h2 className="font-[family-name:var(--font-lora)] text-2xl font-semibold text-malta">
+            {hayFiltros ? "Resultados" : "Todas las recetas"}
+          </h2>
+          <span className="text-sm text-tostado">
+            {total} receta{total !== 1 ? "s" : ""}
+          </span>
+        </div>
 
         {cargando ? (
           <p className="py-16 text-center text-tostado">Cargando…</p>
         ) : cervezas.length === 0 ? (
           <div className="mt-6 rounded-lg border border-dashed border-linea bg-white py-16 text-center">
             <p className="font-[family-name:var(--font-lora)] text-xl text-malta">
-              {hayFiltrosActivos ? "No se encontraron recetas con esos filtros" : "Aún no hay recetas publicadas"}
+              {hayFiltros ? "No se encontraron recetas con esos filtros" : "Aún no hay recetas publicadas"}
             </p>
           </div>
         ) : (
-          <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {cervezas.map((c) => <TarjetaCerveza key={c.id} c={c} />)}
-          </div>
+          <>
+            <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+              {cervezas.map((c) => <TarjetaCerveza key={c.id} c={c} />)}
+            </div>
+            <Paginacion />
+          </>
         )}
       </section>
     </main>

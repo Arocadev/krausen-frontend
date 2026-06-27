@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import Temperaturas from "@/components/Temperaturas";
 import ArbolForks from "@/components/ArbolForks";
+import Comentarios from "@/components/Comentarios";
 
 type Ingrediente = {
   ingrediente: { id: number; nombre: string; tipo: string };
@@ -108,6 +109,10 @@ export default function DetalleCervezaPage() {
     } catch {}
   };
 
+  const scrollComentarios = () => {
+    document.getElementById("comentarios")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   if (cargando) {
     return <p className="py-24 text-center text-tostado">Cargando receta…</p>;
   }
@@ -130,7 +135,6 @@ export default function DetalleCervezaPage() {
       <section className="border-b border-linea bg-crema">
         <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
 
-          {/* Banner receta inactiva */}
           {!activa && (
             <div className="mb-4 inline-flex items-center gap-2 rounded-md bg-tostado/10 px-3 py-1.5 text-sm text-tostado">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -238,6 +242,32 @@ export default function DetalleCervezaPage() {
                 {activa ? "Desactivar" : "Reactivar"}
               </button>
             )}
+
+            {/* Ver comentarios — visible para todos */}
+            <button
+              onClick={scrollComentarios}
+              className="flex items-center gap-2 rounded-md border border-tostado/30 px-4 py-2.5 text-sm font-medium text-tostado transition-colors hover:border-ambar hover:text-ambar-oscuro sm:px-5"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              Ver comentarios
+            </button>
+
+            {/* Comentar — solo usuarios autenticados */}
+            {usuario && (
+              <button
+                onClick={scrollComentarios}
+                className="flex items-center gap-2 rounded-md border border-tostado/30 px-4 py-2.5 text-sm font-medium text-tostado transition-colors hover:border-ambar hover:text-ambar-oscuro sm:px-5"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="10" y1="11" x2="14" y2="11" />
+                </svg>
+                Comentar
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -296,6 +326,9 @@ export default function DetalleCervezaPage() {
         esAutor={!!usuario && cerveza.usuario_id === usuario.id}
       />
       <ArbolForks cervezaId={id as string} />
+      <div id="comentarios">
+        <Comentarios cervezaId={id as string} />
+      </div>
     </main>
   );
 }

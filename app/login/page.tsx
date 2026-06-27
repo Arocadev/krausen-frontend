@@ -55,7 +55,14 @@ export default function LoginPage() {
             />
           </div>
 
-          <PasswordInput id="password" label="Contraseña" value={password} onChange={setPassword} />
+          <div>
+            <PasswordInput id="password" label="Contraseña" value={password} onChange={setPassword} />
+            <p className="mt-2 text-right text-sm">
+              <Link href="/recuperar-password" className="font-medium text-ambar-oscuro hover:underline">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </p>
+          </div>
 
           {error && (
             <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>

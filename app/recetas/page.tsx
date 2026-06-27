@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 
 const LIMIT = 12;
@@ -19,6 +20,7 @@ type Cerveza = {
 };
 
 export default function RecetasPage() {
+  const router = useRouter();
   const [cervezas, setCervezas] = useState<Cerveza[]>([]);
   const [ultimas, setUltimas] = useState<Cerveza[]>([]);
   const [total, setTotal] = useState(0);
@@ -31,6 +33,8 @@ export default function RecetasPage() {
   const [alcoholMax, setAlcoholMax] = useState("");
   const [amargorMin, setAmargorMin] = useState("");
   const [amargorMax, setAmargorMax] = useState("");
+  const [ingrediente, setIngrediente] = useState("");
+  const [autor, setAutor] = useState("");
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
   const [hayFiltros, setHayFiltros] = useState(false);
 
@@ -57,6 +61,8 @@ export default function RecetasPage() {
     if (alcoholMax) params.set("alcohol_max", alcoholMax);
     if (amargorMin) params.set("amargor_min", amargorMin);
     if (amargorMax) params.set("amargor_max", amargorMax);
+    if (ingrediente) params.set("ingrediente", ingrediente);
+    if (autor) params.set("autor", autor);
     params.set("skip", String(pag * LIMIT));
     params.set("limit", String(LIMIT));
 
@@ -74,7 +80,7 @@ export default function RecetasPage() {
   }, []);
 
   const handleBuscar = () => {
-    const activos = !!(busqueda || estilo || alcoholMin || alcoholMax || amargorMin || amargorMax);
+    const activos = !!(busqueda || estilo || alcoholMin || alcoholMax || amargorMin || amargorMax || ingrediente || autor);
     setHayFiltros(activos);
     setPagina(0);
     if (activos) buscar(0);
@@ -95,6 +101,8 @@ export default function RecetasPage() {
     setAlcoholMax("");
     setAmargorMin("");
     setAmargorMax("");
+    setIngrediente("");
+    setAutor("");
     setHayFiltros(false);
     setPagina(0);
     cargarTodas(0);
@@ -103,9 +111,9 @@ export default function RecetasPage() {
   const inputClase = "w-full rounded-md border border-linea bg-white px-3 py-2 text-sm text-malta outline-none transition-colors focus:border-ambar";
 
   const TarjetaCerveza = ({ c }: { c: Cerveza }) => (
-    <Link
-      href={`/cervezas/${c.id}`}
-      className="group rounded-lg border border-linea bg-white p-5 transition-all hover:border-ambar/50 hover:shadow-[0_2px_12px_rgba(92,58,33,0.08)] sm:p-6"
+    <div
+      onClick={() => router.push(`/cervezas/${c.id}`)}
+      className="group cursor-pointer rounded-lg border border-linea bg-white p-5 transition-all hover:border-ambar/50 hover:shadow-[0_2px_12px_rgba(92,58,33,0.08)] sm:p-6"
     >
       {c.estilo && (
         <span className="inline-block rounded-full bg-ambar/25 px-3 py-1 text-xs font-medium uppercase tracking-wide text-ambar-oscuro">
@@ -116,9 +124,7 @@ export default function RecetasPage() {
         {c.nombre}
       </h3>
       {c.descripcion && (
-        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-tostado">
-          {c.descripcion}
-        </p>
+        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-tostado">{c.descripcion}</p>
       )}
       <div className="mt-4 flex items-center justify-between text-sm text-tostado/80">
         <div className="flex gap-3">
@@ -126,9 +132,17 @@ export default function RecetasPage() {
           {c.amargor != null && <span>{c.amargor} IBU</span>}
           {c.parent_id != null && <span className="text-ambar-oscuro">Versión</span>}
         </div>
-        {c.username && <span className="shrink-0 pl-2">por {c.username}</span>}
+        {c.username && (
+          <Link
+            href={`/perfil/${c.username}`}
+            onClick={(e) => e.stopPropagation()}
+            className="shrink-0 pl-2 hover:text-ambar-oscuro hover:underline"
+          >
+            por {c.username}
+          </Link>
+        )}
       </div>
-    </Link>
+    </div>
   );
 
   const Paginacion = () => {
@@ -144,7 +158,6 @@ export default function RecetasPage() {
         </button>
         <div className="flex gap-1">
           {Array.from({ length: totalPaginas }, (_, i) => {
-            // Mostrar siempre primera, última, y las 2 adyacentes a la actual
             const mostrar = i === 0 || i === totalPaginas - 1 || Math.abs(i - pagina) <= 1;
             const esEllipsis = !mostrar && (i === 1 || i === totalPaginas - 2);
             if (esEllipsis) return (
@@ -183,7 +196,6 @@ export default function RecetasPage() {
         Recetas
       </h1>
 
-      {/* Buscador */}
       <div className="mt-6 flex gap-2 sm:mt-8 sm:gap-3">
         <input
           type="text"
@@ -211,11 +223,32 @@ export default function RecetasPage() {
         </button>
       </div>
 
-      {/* Panel de filtros */}
       {filtrosAbiertos && (
         <div className="mt-3 rounded-lg border border-linea bg-white p-4 sm:mt-4 sm:p-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            <div className="sm:col-span-2 lg:col-span-1">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-malta">Ingrediente</label>
+              <input
+                type="text"
+                placeholder="Ej: Cascade, Malta Pale…"
+                value={ingrediente}
+                onChange={(e) => setIngrediente(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleBuscar()}
+                className={inputClase}
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-malta">Autor</label>
+              <input
+                type="text"
+                placeholder="Nombre de usuario…"
+                value={autor}
+                onChange={(e) => setAutor(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleBuscar()}
+                className={inputClase}
+              />
+            </div>
+            <div>
               <label className="mb-1.5 block text-sm font-medium text-malta">Estilo</label>
               <select value={estilo} onChange={(e) => setEstilo(e.target.value)} className={inputClase}>
                 <option value="">Todos los estilos</option>
@@ -246,7 +279,7 @@ export default function RecetasPage() {
                 <option value="Otro">Otro</option>
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-4 sm:col-span-2 lg:col-span-4 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 sm:col-span-2 lg:col-span-3 lg:grid-cols-4">
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-malta">Alcohol mín.</label>
                 <input type="number" step="0.1" min="0" placeholder="0" value={alcoholMin} onChange={(e) => setAlcoholMin(e.target.value)} className={inputClase} />
@@ -278,7 +311,6 @@ export default function RecetasPage() {
         </div>
       )}
 
-      {/* Últimas recetas — solo página 0 sin filtros */}
       {!hayFiltros && pagina === 0 && ultimas.length > 0 && (
         <section className="mt-10 sm:mt-12">
           <h2 className="font-[family-name:var(--font-lora)] text-2xl font-semibold text-malta">
@@ -290,7 +322,6 @@ export default function RecetasPage() {
         </section>
       )}
 
-      {/* Todas / Resultados */}
       <section className="mt-10 sm:mt-12">
         <div className="flex items-baseline gap-3">
           <h2 className="font-[family-name:var(--font-lora)] text-2xl font-semibold text-malta">

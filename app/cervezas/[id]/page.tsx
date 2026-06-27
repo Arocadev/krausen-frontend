@@ -30,6 +30,7 @@ type Cerveza = {
   username: string | null;
   created_at: string;
   activa: boolean;
+  imagen_url: string | null;
   ingredientes: Ingrediente[];
   pasos: Paso[];
 };
@@ -144,6 +145,14 @@ export default function DetalleCervezaPage() {
             </div>
           )}
 
+          {cerveza.imagen_url && (
+            <img
+              src={`http://127.0.0.1:8000${cerveza.imagen_url}`}
+              alt={cerveza.nombre}
+              className="mb-5 h-64 w-full rounded-lg object-cover sm:h-80"
+            />
+          )}
+
           {cerveza.estilo && (
             <span className="inline-block rounded-full bg-ambar/25 px-3 py-1 text-xs font-medium uppercase tracking-wide text-ambar-oscuro">
               {cerveza.estilo}
@@ -156,7 +165,13 @@ export default function DetalleCervezaPage() {
 
           {cerveza.username && (
             <p className="mt-2 text-sm text-tostado sm:mt-3">
-              Creada por <span className="font-medium text-malta">{cerveza.username}</span>
+              Creada por{" "}
+              <Link
+                href={`/perfil/${cerveza.username}`}
+                className="font-medium text-malta hover:text-ambar-oscuro hover:underline"
+              >
+                {cerveza.username}
+              </Link>
               {" · "}
               {new Date(cerveza.created_at).toLocaleDateString("es-ES")}
             </p>
@@ -243,7 +258,6 @@ export default function DetalleCervezaPage() {
               </button>
             )}
 
-            {/* Ver comentarios — visible para todos */}
             <button
               onClick={scrollComentarios}
               className="flex items-center gap-2 rounded-md border border-tostado/30 px-4 py-2.5 text-sm font-medium text-tostado transition-colors hover:border-ambar hover:text-ambar-oscuro sm:px-5"
@@ -254,7 +268,6 @@ export default function DetalleCervezaPage() {
               Ver comentarios
             </button>
 
-            {/* Comentar — solo usuarios autenticados */}
             {usuario && (
               <button
                 onClick={scrollComentarios}

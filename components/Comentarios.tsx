@@ -59,6 +59,9 @@ export default function Comentarios({ cervezaId }: { cervezaId: string }) {
     return `hace ${Math.floor(h / 24)}d`;
   };
 
+  const avatarUrl = (username: string | null) =>
+    `https://api.dicebear.com/7.x/initials/svg?seed=${username ?? "?"}&backgroundColor=c8861b&textColor=ffffff&fontSize=40`;
+
   return (
     <section className="border-t border-linea">
       <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
@@ -81,7 +84,6 @@ export default function Comentarios({ cervezaId }: { cervezaId: string }) {
           )}
         </div>
 
-        {/* Formulario */}
         {usuario && mostrarForm && (
           <div className="mt-6 rounded-lg border border-linea bg-white p-4 sm:p-5">
             <textarea
@@ -115,7 +117,6 @@ export default function Comentarios({ cervezaId }: { cervezaId: string }) {
           </p>
         )}
 
-        {/* Lista de comentarios */}
         {comentarios.length === 0 ? (
           <p className="mt-8 text-sm text-tostado/60">
             Sin comentarios todavía. ¡Sé el primero!
@@ -124,9 +125,11 @@ export default function Comentarios({ cervezaId }: { cervezaId: string }) {
           <ul className="mt-6 space-y-4">
             {comentarios.map((c) => (
               <li key={c.id} className="flex gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ambar/15 text-sm font-medium text-ambar-oscuro">
-                  {c.username?.[0]?.toUpperCase() ?? "?"}
-                </div>
+                <img
+                  src={avatarUrl(c.username)}
+                  alt={c.username ?? "Usuario"}
+                  className="h-8 w-8 shrink-0 rounded-full"
+                />
                 <div className="flex-1 rounded-lg border border-linea bg-white px-4 py-3">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">

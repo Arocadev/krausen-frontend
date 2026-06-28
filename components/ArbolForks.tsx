@@ -52,7 +52,6 @@ function NodoArbol({ nodo, esRaiz, tPor }: { nodo: Nodo; esRaiz: boolean; tPor: 
 }
 
 export default function ArbolForks({ cervezaId }: { cervezaId: string }) {
-  const t = useTranslations("detalle");
   const tRecetas = useTranslations("recetas");
   const [arbol, setArbol] = useState<Nodo | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -65,23 +64,11 @@ export default function ArbolForks({ cervezaId }: { cervezaId: string }) {
   }, [cervezaId]);
 
   if (cargando) return null;
-  if (!arbol || (!arbol.hijos.length && !arbol.es_actual)) return null;
-  if (!arbol.hijos.length && !arbol.es_actual) return null;
-  if (!arbol.hijos.length && !arbol.es_actual) return null;
+  if (!arbol) return null;
 
   return (
-    <section className="border-t border-linea">
-      <div className="mx-auto max-w-4xl px-6 py-14">
-        <h2 className="font-[family-name:var(--font-lora)] text-2xl font-semibold text-malta">
-          Árbol de versiones
-        </h2>
-        <p className="mt-2 text-sm text-tostado">
-          Receta original y todas las versiones derivadas.
-        </p>
-        <div className="mt-8 flex justify-center overflow-x-auto py-4">
-          <NodoArbol nodo={arbol} esRaiz={true} tPor={tRecetas("por")} />
-        </div>
-      </div>
-    </section>
+    <div className="flex justify-center overflow-x-auto py-4">
+      <NodoArbol nodo={arbol} esRaiz={true} tPor={tRecetas("por")} />
+    </div>
   );
 }

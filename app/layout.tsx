@@ -7,6 +7,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { LocaleProvider } from "@/context/LocaleContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AppShell from "@/components/AppShell";
 
 const lora = Lora({ subsets: ["latin"], variable: "--font-lora" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -23,13 +24,15 @@ export default async function RootLayout({
 
   return (
     <html lang="es">
-      <body className={`${lora.variable} ${inter.variable} font-[family-name:var(--font-inter)] antialiased flex flex-col min-h-screen`}>
+      <body className={`${lora.variable} ${inter.variable} font-[family-name:var(--font-inter)] antialiased`}>
         <NextIntlClientProvider messages={messages}>
           <LocaleProvider>
             <AuthProvider>
-              <Navbar />
-              <div className="flex-1">{children}</div>
-              <Footer />
+              <AppShell>
+                <Navbar />
+                <div className="flex-1">{children}</div>
+                <Footer />
+              </AppShell>
             </AuthProvider>
           </LocaleProvider>
         </NextIntlClientProvider>

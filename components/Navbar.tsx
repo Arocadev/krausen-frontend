@@ -27,6 +27,7 @@ export default function Navbar() {
   const { locale, setLocale } = useLocale();
   const t = useTranslations("nav");
   const pathname = usePathname();
+  const [montado, setMontado] = useState(false);
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [notifAbiertas, setNotifAbiertas] = useState(false);
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
@@ -34,6 +35,8 @@ export default function Navbar() {
   const [idiomaAbierto, setIdiomaAbierto] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const idiomaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setMontado(true); }, []);
 
   const cerrarMenu = () => setMenuAbierto(false);
 
@@ -119,7 +122,7 @@ export default function Navbar() {
         onClick={() => setIdiomaAbierto(!idiomaAbierto)}
         className="flex items-center gap-1 text-sm text-espuma/80 transition-colors hover:text-crema"
       >
-        <span>{FLAG[locale as Locale]}</span>
+        <span suppressHydrationWarning>{FLAG[locale as Locale]}</span>
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polyline points="6 9 12 15 18 9" />
         </svg>
@@ -156,15 +159,15 @@ export default function Navbar() {
         <div className="hidden items-center gap-8 text-sm md:flex">
           <Link href="/recetas" className={linkClass("/recetas")}>{t("recetas")}</Link>
           <Link href="/ranking" className={linkClass("/ranking")}>{t("ranking")}</Link>
-          {usuario && <Link href="/mis-recetas" className={linkClass("/mis-recetas")}>{t("misRecetas")}</Link>}
-          {usuario && <Link href="/cervezas/nueva" className={linkClass("/cervezas/nueva")}>{t("crearReceta")}</Link>}
+          {montado && usuario && <Link href="/mis-recetas" className={linkClass("/mis-recetas")}>{t("misRecetas")}</Link>}
+          {montado && usuario && <Link href="/cervezas/nueva" className={linkClass("/cervezas/nueva")}>{t("crearReceta")}</Link>}
         </div>
 
         {/* Acciones desktop */}
         <div className="hidden items-center gap-6 md:flex">
           <SelectorIdioma />
 
-          {usuario ? (
+          {montado && usuario ? (
             <>
               <div className="relative" ref={notifRef}>
                 <button
@@ -242,12 +245,12 @@ export default function Navbar() {
                 </svg>
               </button>
             </>
-          ) : (
+          ) : montado ? (
             <>
               <Link href="/login" className={linkClass("/login")}>{t("entrar")}</Link>
               <Link href="/registro" className={linkClass("/registro")}>{t("crearCuenta")}</Link>
             </>
-          )}
+          ) : null}
         </div>
 
         {/* Botón hamburger (móvil) */}
@@ -279,13 +282,13 @@ export default function Navbar() {
             <div className="flex flex-col gap-1">
               <Link href="/recetas" onClick={cerrarMenu} className={linkMobileClass("/recetas")}>{t("recetas")}</Link>
               <Link href="/ranking" onClick={cerrarMenu} className={linkMobileClass("/ranking")}>{t("ranking")}</Link>
-              {usuario && <Link href="/mis-recetas" onClick={cerrarMenu} className={linkMobileClass("/mis-recetas")}>{t("misRecetas")}</Link>}
-              {usuario && <Link href="/cervezas/nueva" onClick={cerrarMenu} className={linkMobileClass("/cervezas/nueva")}>{t("crearReceta")}</Link>}
+              {montado && usuario && <Link href="/mis-recetas" onClick={cerrarMenu} className={linkMobileClass("/mis-recetas")}>{t("misRecetas")}</Link>}
+              {montado && usuario && <Link href="/cervezas/nueva" onClick={cerrarMenu} className={linkMobileClass("/cervezas/nueva")}>{t("crearReceta")}</Link>}
 
               <div className="my-2 border-t border-espuma/10" />
 
               {/* Selector idioma móvil */}
-              <div className="flex gap-2 px-3 py-2">
+              <div className="flex gap-2 px-3 py-2" suppressHydrationWarning>
                 {(["es", "en", "de"] as Locale[]).map((l) => (
                   <button
                     key={l}
@@ -299,7 +302,7 @@ export default function Navbar() {
 
               <div className="my-1 border-t border-espuma/10" />
 
-              {usuario ? (
+              {montado && usuario ? (
                 <>
                   <Link href="/notificaciones" onClick={cerrarMenu} className={`flex items-center gap-2 ${linkMobileClass("/notificaciones")}`}>
                     <span className="relative">
@@ -325,12 +328,12 @@ export default function Navbar() {
                     {t("cerrarSesion")}
                   </button>
                 </>
-              ) : (
+              ) : montado ? (
                 <div className="mt-1 flex flex-col gap-2">
                   <Link href="/login" onClick={cerrarMenu} className={linkMobileClass("/login")}>{t("entrar")}</Link>
                   <Link href="/registro" onClick={cerrarMenu} className={linkMobileClass("/registro")}>{t("crearCuenta")}</Link>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         </div>

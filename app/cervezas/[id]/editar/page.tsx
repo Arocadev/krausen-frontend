@@ -319,7 +319,7 @@ export default function EditarCervezaPage() {
                   <option value="g">g</option>
                   <option value="kg">kg</option>
                   <option value="ml">ml</option>
-                  <option value="l">l</option>
+                  <option value="l">L</option>
                   <option value="ud">ud</option>
                 </select>
                 <button type="button" onClick={() => quitarIngrediente(i)} className="px-2 text-tostado hover:text-red-700">✕</button>

@@ -42,7 +42,6 @@ export default function Navbar() {
     return () => clearInterval(intervalo);
   }, [usuario]);
 
-  // Cerrar dropdown al hacer clic fuera
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
@@ -81,8 +80,7 @@ export default function Navbar() {
     if (min < 60) return `hace ${min}m`;
     const h = Math.floor(min / 60);
     if (h < 24) return `hace ${h}h`;
-    const d = Math.floor(h / 24);
-    return `hace ${d}d`;
+    return `hace ${Math.floor(h / 24)}d`;
   };
 
   const IconoCampana = () => (
@@ -92,39 +90,24 @@ export default function Navbar() {
     </svg>
   );
 
-  const BotonNotificaciones = ({ mobile = false }: { mobile?: boolean }) => (
-    <div className={mobile ? "relative" : "relative"} ref={mobile ? undefined : notifRef}>
-      <button
-        onClick={() => {
-          setNotifAbiertas(!notifAbiertas);
-          if (mobile) cerrarMenu();
-        }}
-        className={`relative flex items-center gap-2 text-sm font-medium text-espuma/80 transition-colors hover:text-crema ${mobile ? "rounded-md px-3 py-2.5 hover:bg-espuma/10" : ""}`}
-        title="Notificaciones"
-      >
-        <span className="relative">
-          <IconoCampana />
-          {noLeidas > 0 && (
-            <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-ambar text-[10px] font-bold text-white">
-              {noLeidas > 9 ? "9+" : noLeidas}
-            </span>
-          )}
-        </span>
-        {mobile && <span>Notificaciones {noLeidas > 0 && `(${noLeidas})`}</span>}
-      </button>
-    </div>
-  );
-
   return (
     <header className="sticky top-0 z-50 bg-navbar">
-      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-0">
+
         {/* Logo */}
         <Link
           href="/"
           onClick={cerrarMenu}
-          className="font-[family-name:var(--font-lora)] text-2xl font-semibold tracking-tight text-crema"
+          className="flex items-center gap-1.5"
         >
-          Krausen
+          <img
+            src="/cerveza_logo.png"
+            alt=""
+            className="h-7 w-7 brightness-125"
+          />
+          <span className="font-[family-name:var(--font-lora)] text-2xl font-semibold tracking-tight text-crema">
+            Krausen
+          </span>
         </Link>
 
         {/* Links desktop */}
@@ -148,10 +131,9 @@ export default function Navbar() {
         </div>
 
         {/* Acciones desktop */}
-        <div className="hidden items-center gap-4 md:flex">
+        <div className="hidden items-center gap-8 md:flex">
           {usuario ? (
             <>
-              {/* Campana con dropdown */}
               <div className="relative" ref={notifRef}>
                 <button
                   onClick={() => setNotifAbiertas(!notifAbiertas)}
@@ -166,7 +148,6 @@ export default function Navbar() {
                   )}
                 </button>
 
-                {/* Dropdown notificaciones */}
                 {notifAbiertas && (
                   <div className="absolute right-0 top-8 z-50 w-80 rounded-lg border border-linea bg-navbar shadow-lg">
                     <div className="flex items-center justify-between border-b border-espuma/10 px-4 py-3">
@@ -180,7 +161,6 @@ export default function Navbar() {
                         </button>
                       )}
                     </div>
-
                     <div className="max-h-80 overflow-y-auto">
                       {notificaciones.length === 0 ? (
                         <p className="px-4 py-8 text-center text-sm text-espuma/50">
@@ -230,10 +210,7 @@ export default function Navbar() {
                 )}
               </div>
 
-              <Link
-                href="/perfil"
-                className="text-sm font-medium text-espuma/80 transition-colors hover:text-crema"
-              >
+              <Link href="/perfil" className="text-sm font-medium text-espuma/80 transition-colors hover:text-crema">
                 Mi perfil
               </Link>
               <div className="h-4 w-px bg-espuma/20" />
@@ -251,16 +228,10 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link
-                href="/login"
-                className="text-sm font-medium text-espuma/80 transition-colors hover:text-crema"
-              >
+              <Link href="/login" className="text-sm font-medium text-espuma/80 transition-colors hover:text-crema">
                 Entrar
               </Link>
-              <Link
-                href="/registro"
-                className="rounded-md bg-ambar px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ambar-oscuro"
-              >
+              <Link href="/registro" className="text-sm font-medium text-espuma/80 transition-colors hover:text-crema">
                 Crear cuenta
               </Link>
             </>
@@ -315,7 +286,6 @@ export default function Navbar() {
 
               {usuario ? (
                 <>
-                  {/* Notificaciones en móvil */}
                   <Link
                     href="/notificaciones"
                     onClick={cerrarMenu}
@@ -348,10 +318,10 @@ export default function Navbar() {
                 </>
               ) : (
                 <div className="mt-1 flex flex-col gap-2">
-                  <Link href="/login" onClick={cerrarMenu} className="rounded-md border border-espuma/20 px-4 py-2.5 text-center text-sm font-medium text-espuma/80 transition-colors hover:border-espuma/40 hover:text-crema">
+                  <Link href="/login" onClick={cerrarMenu} className="rounded-md px-3 py-2.5 text-sm font-medium text-espuma/80 transition-colors hover:bg-espuma/10 hover:text-crema">
                     Entrar
                   </Link>
-                  <Link href="/registro" onClick={cerrarMenu} className="rounded-md bg-ambar px-4 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-ambar-oscuro">
+                  <Link href="/registro" onClick={cerrarMenu} className="rounded-md px-3 py-2.5 text-sm font-medium text-espuma/80 transition-colors hover:bg-espuma/10 hover:text-crema">
                     Crear cuenta
                   </Link>
                 </div>

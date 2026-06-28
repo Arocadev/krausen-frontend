@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 
@@ -17,6 +18,7 @@ type Notificacion = {
 
 export default function Navbar() {
   const { usuario, logout } = useAuth();
+  const pathname = usePathname();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [notifAbiertas, setNotifAbiertas] = useState(false);
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
@@ -24,6 +26,16 @@ export default function Navbar() {
   const notifRef = useRef<HTMLDivElement>(null);
 
   const cerrarMenu = () => setMenuAbierto(false);
+
+  const linkClass = (href: string) => {
+    const activo = pathname === href || pathname.startsWith(href + "/");
+    return `transition-colors ${activo ? "text-crema font-semibold" : "text-espuma/80 hover:text-crema"}`;
+  };
+
+  const linkMobileClass = (href: string) => {
+    const activo = pathname === href || pathname.startsWith(href + "/");
+    return `rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${activo ? "bg-espuma/10 text-crema" : "text-espuma/80 hover:bg-espuma/10 hover:text-crema"}`;
+  };
 
   const cargarNotificaciones = () => {
     if (!usuario) return;
@@ -95,39 +107,19 @@ export default function Navbar() {
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-0">
 
         {/* Logo */}
-        <Link
-          href="/"
-          onClick={cerrarMenu}
-          className="flex items-center gap-1.5"
-        >
-          <img
-            src="/cerveza_logo.png"
-            alt=""
-            className="h-7 w-7 brightness-125"
-          />
+        <Link href="/" onClick={cerrarMenu} className="flex items-center gap-1.5">
+          <img src="/cerveza_logo.png" alt="" className="h-7 w-7 brightness-125" />
           <span className="font-[family-name:var(--font-lora)] text-2xl font-semibold tracking-tight text-crema">
             Krausen
           </span>
         </Link>
 
         {/* Links desktop */}
-        <div className="hidden items-center gap-8 text-sm font-medium text-espuma/80 md:flex">
-          <Link href="/recetas" className="transition-colors hover:text-crema">
-            Recetas
-          </Link>
-          <Link href="/ranking" className="transition-colors hover:text-crema">
-            Ranking
-          </Link>
-          {usuario && (
-            <Link href="/mis-recetas" className="transition-colors hover:text-crema">
-              Mis recetas
-            </Link>
-          )}
-          {usuario && (
-            <Link href="/cervezas/nueva" className="transition-colors hover:text-crema">
-              Crear receta
-            </Link>
-          )}
+        <div className="hidden items-center gap-8 text-sm md:flex">
+          <Link href="/recetas" className={linkClass("/recetas")}>Recetas</Link>
+          <Link href="/ranking" className={linkClass("/ranking")}>Ranking</Link>
+          {usuario && <Link href="/mis-recetas" className={linkClass("/mis-recetas")}>Mis recetas</Link>}
+          {usuario && <Link href="/cervezas/nueva" className={linkClass("/cervezas/nueva")}>Crear receta</Link>}
         </div>
 
         {/* Acciones desktop */}
@@ -153,28 +145,20 @@ export default function Navbar() {
                     <div className="flex items-center justify-between border-b border-espuma/10 px-4 py-3">
                       <span className="text-sm font-medium text-crema">Notificaciones</span>
                       {noLeidas > 0 && (
-                        <button
-                          onClick={marcarTodasLeidas}
-                          className="text-xs text-espuma/60 transition-colors hover:text-crema"
-                        >
+                        <button onClick={marcarTodasLeidas} className="text-xs text-espuma/60 transition-colors hover:text-crema">
                           Marcar todas como leídas
                         </button>
                       )}
                     </div>
                     <div className="max-h-80 overflow-y-auto">
                       {notificaciones.length === 0 ? (
-                        <p className="px-4 py-8 text-center text-sm text-espuma/50">
-                          Sin notificaciones
-                        </p>
+                        <p className="px-4 py-8 text-center text-sm text-espuma/50">Sin notificaciones</p>
                       ) : (
                         notificaciones.map((n) => (
                           <Link
                             key={n.id}
                             href={`/cervezas/${n.cerveza_id}`}
-                            onClick={() => {
-                              if (!n.leida) marcarLeida(n.id);
-                              setNotifAbiertas(false);
-                            }}
+                            onClick={() => { if (!n.leida) marcarLeida(n.id); setNotifAbiertas(false); }}
                             className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-espuma/5 ${!n.leida ? "bg-espuma/10" : ""}`}
                           >
                             <span className="mt-0.5 shrink-0 text-ambar">
@@ -192,16 +176,10 @@ export default function Navbar() {
                               )}
                             </span>
                             <div className="min-w-0 flex-1">
-                              <p className="text-xs leading-relaxed text-espuma/80">
-                                {textoNotificacion(n)}
-                              </p>
-                              <p className="mt-1 text-[11px] text-espuma/40">
-                                {tiempoRelativo(n.created_at)}
-                              </p>
+                              <p className="text-xs leading-relaxed text-espuma/80">{textoNotificacion(n)}</p>
+                              <p className="mt-1 text-[11px] text-espuma/40">{tiempoRelativo(n.created_at)}</p>
                             </div>
-                            {!n.leida && (
-                              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-ambar" />
-                            )}
+                            {!n.leida && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-ambar" />}
                           </Link>
                         ))
                       )}
@@ -210,9 +188,7 @@ export default function Navbar() {
                 )}
               </div>
 
-              <Link href="/perfil" className="text-sm font-medium text-espuma/80 transition-colors hover:text-crema">
-                Mi perfil
-              </Link>
+              <Link href="/perfil" className={linkClass("/perfil")}>Mi perfil</Link>
               <div className="h-4 w-px bg-espuma/20" />
               <button
                 onClick={logout}
@@ -228,12 +204,8 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/login" className="text-sm font-medium text-espuma/80 transition-colors hover:text-crema">
-                Entrar
-              </Link>
-              <Link href="/registro" className="text-sm font-medium text-espuma/80 transition-colors hover:text-crema">
-                Crear cuenta
-              </Link>
+              <Link href="/login" className={linkClass("/login")}>Entrar</Link>
+              <Link href="/registro" className={linkClass("/registro")}>Crear cuenta</Link>
             </>
           )}
         </div>
@@ -265,32 +237,16 @@ export default function Navbar() {
         <div className="border-t border-espuma/10 bg-navbar md:hidden">
           <div className="mx-auto max-w-6xl px-6 py-4">
             <div className="flex flex-col gap-1">
-              <Link href="/recetas" onClick={cerrarMenu} className="rounded-md px-3 py-2.5 text-sm font-medium text-espuma/80 transition-colors hover:bg-espuma/10 hover:text-crema">
-                Recetas
-              </Link>
-              <Link href="/ranking" onClick={cerrarMenu} className="rounded-md px-3 py-2.5 text-sm font-medium text-espuma/80 transition-colors hover:bg-espuma/10 hover:text-crema">
-                Ranking
-              </Link>
-              {usuario && (
-                <Link href="/mis-recetas" onClick={cerrarMenu} className="rounded-md px-3 py-2.5 text-sm font-medium text-espuma/80 transition-colors hover:bg-espuma/10 hover:text-crema">
-                  Mis recetas
-                </Link>
-              )}
-              {usuario && (
-                <Link href="/cervezas/nueva" onClick={cerrarMenu} className="rounded-md px-3 py-2.5 text-sm font-medium text-espuma/80 transition-colors hover:bg-espuma/10 hover:text-crema">
-                  Crear receta
-                </Link>
-              )}
+              <Link href="/recetas" onClick={cerrarMenu} className={linkMobileClass("/recetas")}>Recetas</Link>
+              <Link href="/ranking" onClick={cerrarMenu} className={linkMobileClass("/ranking")}>Ranking</Link>
+              {usuario && <Link href="/mis-recetas" onClick={cerrarMenu} className={linkMobileClass("/mis-recetas")}>Mis recetas</Link>}
+              {usuario && <Link href="/cervezas/nueva" onClick={cerrarMenu} className={linkMobileClass("/cervezas/nueva")}>Crear receta</Link>}
 
               <div className="my-2 border-t border-espuma/10" />
 
               {usuario ? (
                 <>
-                  <Link
-                    href="/notificaciones"
-                    onClick={cerrarMenu}
-                    className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-espuma/80 transition-colors hover:bg-espuma/10 hover:text-crema"
-                  >
+                  <Link href="/notificaciones" onClick={cerrarMenu} className={`flex items-center gap-2 ${linkMobileClass("/notificaciones")}`}>
                     <span className="relative">
                       <IconoCampana />
                       {noLeidas > 0 && (
@@ -301,9 +257,7 @@ export default function Navbar() {
                     </span>
                     Notificaciones {noLeidas > 0 && `(${noLeidas})`}
                   </Link>
-                  <Link href="/perfil" onClick={cerrarMenu} className="rounded-md px-3 py-2.5 text-sm font-medium text-espuma/80 transition-colors hover:bg-espuma/10 hover:text-crema">
-                    Mi perfil
-                  </Link>
+                  <Link href="/perfil" onClick={cerrarMenu} className={linkMobileClass("/perfil")}>Mi perfil</Link>
                   <button
                     onClick={() => { logout(); cerrarMenu(); }}
                     className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-espuma/80 transition-colors hover:bg-espuma/10 hover:text-crema"
@@ -318,12 +272,8 @@ export default function Navbar() {
                 </>
               ) : (
                 <div className="mt-1 flex flex-col gap-2">
-                  <Link href="/login" onClick={cerrarMenu} className="rounded-md px-3 py-2.5 text-sm font-medium text-espuma/80 transition-colors hover:bg-espuma/10 hover:text-crema">
-                    Entrar
-                  </Link>
-                  <Link href="/registro" onClick={cerrarMenu} className="rounded-md px-3 py-2.5 text-sm font-medium text-espuma/80 transition-colors hover:bg-espuma/10 hover:text-crema">
-                    Crear cuenta
-                  </Link>
+                  <Link href="/login" onClick={cerrarMenu} className={linkMobileClass("/login")}>Entrar</Link>
+                  <Link href="/registro" onClick={cerrarMenu} className={linkMobileClass("/registro")}>Crear cuenta</Link>
                 </div>
               )}
             </div>

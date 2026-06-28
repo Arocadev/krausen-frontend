@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 
-const LIMIT = 12;
+const LIMIT = 6;
 
 type Cerveza = {
   id: number;
@@ -46,7 +46,7 @@ export default function RecetasPage() {
       .then((res) => {
         setCervezas(res.data.cervezas);
         setTotal(res.data.total);
-        if (pag === 0) setUltimas(res.data.cervezas.slice(0, 6));
+        if (pag === 0) setUltimas(res.data.cervezas.slice(0, 3));
       })
       .catch(() => {})
       .finally(() => setCargando(false));

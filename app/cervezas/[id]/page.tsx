@@ -183,14 +183,33 @@ export default function DetalleCervezaPage() {
             </p>
           )}
 
-          <div className="mt-5 flex flex-wrap gap-4 text-sm text-tostado sm:mt-6 sm:gap-6">
-            {cerveza.alcohol != null && <span>{cerveza.alcohol}% vol.</span>}
-            {cerveza.amargor != null && <span>{cerveza.amargor} IBU</span>}
-            {cerveza.litros != null && <span>{cerveza.litros} L</span>}
+          {/* Datos técnicos con labels */}
+          <div className="mt-5 flex flex-wrap gap-6 sm:mt-6">
+            {cerveza.alcohol != null && (
+              <div className="flex flex-col">
+                <span className="text-xs font-medium uppercase tracking-wide text-tostado/60">Alcohol</span>
+                <span className="mt-0.5 font-medium text-malta">{cerveza.alcohol}% vol.</span>
+              </div>
+            )}
+            {cerveza.amargor != null && (
+              <div className="flex flex-col">
+                <span className="text-xs font-medium uppercase tracking-wide text-tostado/60">Amargor</span>
+                <span className="mt-0.5 font-medium text-malta">{cerveza.amargor} IBU</span>
+              </div>
+            )}
+            {cerveza.litros != null && (
+              <div className="flex flex-col">
+                <span className="text-xs font-medium uppercase tracking-wide text-tostado/60">Volumen</span>
+                <span className="mt-0.5 font-medium text-malta">{cerveza.litros} L</span>
+              </div>
+            )}
             {cerveza.parent_id != null && (
-              <Link href={`/cervezas/${cerveza.parent_id}`} className="text-ambar-oscuro hover:underline">
-                Versión de otra receta
-              </Link>
+              <div className="flex flex-col">
+                <span className="text-xs font-medium uppercase tracking-wide text-tostado/60">Basada en</span>
+                <Link href={`/cervezas/${cerveza.parent_id}`} className="mt-0.5 font-medium text-ambar-oscuro hover:underline">
+                  Receta original
+                </Link>
+              </div>
             )}
           </div>
 

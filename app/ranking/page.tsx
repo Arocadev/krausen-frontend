@@ -13,38 +13,71 @@ type EntradaRanking = {
   total_likes: number;
 };
 
+type Periodo = "mensual" | "anual" | "global";
+
+const LABELS: Record<Periodo, string> = {
+  mensual: "Este mes",
+  anual: "Este año",
+  global: "Global",
+};
+
 export default function RankingPage() {
   const [ranking, setRanking] = useState<EntradaRanking[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [periodo, setPeriodo] = useState<Periodo>("mensual");
 
   useEffect(() => {
+    setCargando(true);
     api
-      .get("/api/ranking/mensual")
+      .get(`/api/ranking/${periodo}`)
       .then((res) => setRanking(res.data))
       .catch(() => {})
       .finally(() => setCargando(false));
-  }, []);
+  }, [periodo]);
 
-  const mes = new Date().toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+  const subtitulo = {
+    mensual: new Date()
+      .toLocaleDateString("es-ES", { month: "long", year: "numeric" })
+      .toLowerCase()
+      .replace(/^\w/, (c) => c.toUpperCase()),
+    anual: `Año ${new Date().getFullYear()}`,
+    global: "Todas las recetas de la comunidad",
+  }[periodo];
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-14">
-      <h1 className="font-[family-name:var(--font-lora)] text-4xl font-semibold text-malta">
-        Ranking del mes
-      </h1>
-      <p className="mt-2 capitalize text-tostado">{mes}</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="font-[family-name:var(--font-lora)] text-4xl font-semibold text-malta">
+            Ranking
+          </h1>
+          <p className="mt-2 text-tostado">{subtitulo}</p>
+        </div>
+
+        <select
+          value={periodo}
+          onChange={(e) => setPeriodo(e.target.value as Periodo)}
+          className="mt-1 rounded-full border border-linea bg-white px-4 py-1.5 text-sm font-medium text-tostado outline-none transition-colors hover:border-ambar/50 focus:border-ambar"
+        >
+          <option value="mensual">Este mes</option>
+          <option value="anual">Este año</option>
+          <option value="global">Global</option>
+        </select>
+      </div>
 
       {cargando ? (
-        <p className="py-16 text-center text-tostado">Cargando ranking…</p>
+        <div className="min-h-[300px]">
+          <p className="py-16 text-center text-tostado">Cargando ranking…</p>
+        </div>
       ) : ranking.length === 0 ? (
-        <div className="mt-10 rounded-lg border border-dashed border-linea bg-white py-20 text-center">
+        <div className="mt-10 min-h-[300px] rounded-lg border border-dashed border-linea bg-white py-20 text-center">
           <p className="font-[family-name:var(--font-lora)] text-xl text-malta">
-            Todavía no hay me gustas este mes
+            Todavía no hay me gustas {periodo === "mensual" ? "este mes" : periodo === "anual" ? "este año" : ""}
           </p>
           <p className="mt-2 text-tostado">Dale me gusta a las recetas que te molen.</p>
         </div>
       ) : (
-        <ol className="mt-10 space-y-3">
+        <ol className="mt-8 min-h-[300px] space-y-3">
           {ranking.map((r) => (
             <li key={r.id}>
               <Link

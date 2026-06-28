@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import PasswordInput from "@/components/PasswordInput";
@@ -10,6 +11,7 @@ import PasswordInput from "@/components/PasswordInput";
 export default function RegistroPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const t = useTranslations("auth");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,16 +49,14 @@ export default function RegistroPage() {
     <main className="min-h-[calc(100vh-4rem)] bg-espuma px-6 py-20">
       <div className="mx-auto max-w-md rounded-lg border border-linea bg-white p-10">
         <h1 className="font-[family-name:var(--font-lora)] text-3xl font-semibold text-malta">
-          Únete a Krausen
+          {t("unete")}
         </h1>
-        <p className="mt-2 text-tostado">
-          Crea tu cuenta y comparte tus elaboraciones.
-        </p>
+        <p className="mt-2 text-tostado">{t("subtituloRegistro")}</p>
 
         <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-5">
           <div>
             <label htmlFor="username" className="mb-1.5 block text-sm font-medium text-malta">
-              Nombre de usuario
+              {t("username")}
             </label>
             <input
               id="username"
@@ -72,7 +72,7 @@ export default function RegistroPage() {
 
           <div>
             <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-malta">
-              Email
+              {t("email")}
             </label>
             <input
               id="email"
@@ -84,8 +84,8 @@ export default function RegistroPage() {
             />
           </div>
 
-          <PasswordInput id="password" label="Contraseña" value={password} onChange={setPassword} />
-          <PasswordInput id="confirmar" label="Repite la contraseña" value={confirmar} onChange={setConfirmar} />
+          <PasswordInput id="password" label={t("password")} value={password} onChange={setPassword} />
+          <PasswordInput id="confirmar" label={t("repitePassword")} value={confirmar} onChange={setConfirmar} />
 
           {error && (
             <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>
@@ -96,14 +96,14 @@ export default function RegistroPage() {
             disabled={enviando}
             className="mt-2 rounded-md bg-ambar px-6 py-3 font-medium text-white transition-colors hover:bg-ambar-oscuro disabled:opacity-60"
           >
-            {enviando ? "Creando cuenta…" : "Crear cuenta"}
+            {enviando ? t("creando") : t("crearCuenta")}
           </button>
         </form>
 
         <p className="mt-8 text-center text-sm text-tostado">
-          ¿Ya tienes cuenta?{" "}
+          {t("yaTienesCuenta")}{" "}
           <Link href="/login" className="font-medium text-ambar-oscuro hover:underline">
-            Entra
+            {t("inicia")}
           </Link>
         </p>
       </div>

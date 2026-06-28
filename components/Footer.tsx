@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export default function Footer() {
+  const t = useTranslations("footer");
+
   return (
     <footer className="bg-navbar mt-auto">
       <div className="mx-auto max-w-6xl px-0 py-3">
@@ -10,10 +15,10 @@ export default function Footer() {
           </span>
           <div className="flex items-center gap-4">
             <Link href="/faq" className="text-xs text-espuma/60 transition-colors hover:text-crema">
-              FAQ
+              {t("faq")}
             </Link>
             <Link href="/aviso-legal" className="text-xs text-espuma/60 transition-colors hover:text-crema">
-              Aviso legal
+              {t("avisoLegal")}
             </Link>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
@@ -19,6 +20,7 @@ type Notificacion = {
 export default function NotificacionesPage() {
   const { usuario } = useAuth();
   const router = useRouter();
+  const t = useTranslations("notificaciones");
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
   const [noLeidas, setNoLeidas] = useState(0);
   const [cargando, setCargando] = useState(true);
@@ -26,10 +28,7 @@ export default function NotificacionesPage() {
   useEffect(() => {
     if (!usuario) { router.push("/login"); return; }
     api.get("/api/notificaciones/")
-      .then((res) => {
-        setNotificaciones(res.data.notificaciones);
-        setNoLeidas(res.data.no_leidas);
-      })
+      .then((res) => { setNotificaciones(res.data.notificaciones); setNoLeidas(res.data.no_leidas); })
       .catch(() => {})
       .finally(() => setCargando(false));
   }, [usuario]);
@@ -59,25 +58,18 @@ export default function NotificacionesPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-14">
       <div className="flex items-center justify-between">
-        <h1 className="font-[family-name:var(--font-lora)] text-3xl font-semibold text-malta">
-          Notificaciones
-        </h1>
+        <h1 className="font-[family-name:var(--font-lora)] text-3xl font-semibold text-malta">{t("titulo")}</h1>
         {noLeidas > 0 && (
-          <button
-            onClick={marcarTodasLeidas}
-            className="text-sm font-medium text-tostado transition-colors hover:text-malta"
-          >
-            Marcar todas como leídas
-          </button>
+          <button onClick={marcarTodasLeidas} className="text-sm font-medium text-tostado transition-colors hover:text-malta">{t("marcarTodas")}</button>
         )}
       </div>
 
       {cargando ? (
-        <p className="py-16 text-center text-tostado">Cargando…</p>
+        <p className="py-16 text-center text-tostado">{t("cargando")}</p>
       ) : notificaciones.length === 0 ? (
         <div className="mt-8 rounded-lg border border-dashed border-linea bg-white py-16 text-center">
-          <p className="font-[family-name:var(--font-lora)] text-xl text-malta">Sin notificaciones</p>
-          <p className="mt-2 text-sm text-tostado">Cuando alguien interactúe con tus recetas aparecerá aquí</p>
+          <p className="font-[family-name:var(--font-lora)] text-xl text-malta">{t("sinNotificaciones")}</p>
+          <p className="mt-2 text-sm text-tostado">{t("sinNotificacionesDesc")}</p>
         </div>
       ) : (
         <ul className="mt-6 divide-y divide-linea rounded-lg border border-linea bg-white">
@@ -105,9 +97,9 @@ export default function NotificacionesPage() {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm leading-relaxed text-tostado">
                     {n.tipo === "like" ? (
-                      <><span className="font-medium text-malta">{n.actor_username}</span> le dio me gusta a <span className="font-medium text-malta">{n.cerveza_nombre}</span></>
+                      <><span className="font-medium text-malta">{n.actor_username}</span> {t("like")} <span className="font-medium text-malta">{n.cerveza_nombre}</span></>
                     ) : (
-                      <><span className="font-medium text-malta">{n.actor_username}</span> hizo una versión de <span className="font-medium text-malta">{n.cerveza_nombre}</span></>
+                      <><span className="font-medium text-malta">{n.actor_username}</span> {t("fork")} <span className="font-medium text-malta">{n.cerveza_nombre}</span></>
                     )}
                   </p>
                   <p className="mt-1 text-xs text-tostado/60">{tiempoRelativo(n.created_at)}</p>

@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/context/AuthContext";
+import { useLocale } from "@/context/LocaleContext";
 import { api } from "@/lib/api";
 
 type Notificacion = {
@@ -16,20 +18,28 @@ type Notificacion = {
   actor_username: string | null;
 };
 
+type Locale = "es" | "en" | "de";
+
+const FLAG: Record<Locale, string> = { es: "ES", en: "EN", de: "DEU" };
+
 export default function Navbar() {
   const { usuario, logout } = useAuth();
+  const { locale, setLocale } = useLocale();
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [notifAbiertas, setNotifAbiertas] = useState(false);
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
   const [noLeidas, setNoLeidas] = useState(0);
+  const [idiomaAbierto, setIdiomaAbierto] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
+  const idiomaRef = useRef<HTMLDivElement>(null);
 
   const cerrarMenu = () => setMenuAbierto(false);
 
   const linkClass = (href: string) => {
     const activo = pathname === href || pathname.startsWith(href + "/");
-    return `transition-colors ${activo ? "text-crema font-semibold" : "text-espuma/80 hover:text-crema"}`;
+    return `transition-colors text-sm font-medium ${activo ? "text-crema font-semibold" : "text-espuma/80 hover:text-crema"}`;
   };
 
   const linkMobileClass = (href: string) => {
@@ -59,6 +69,9 @@ export default function Navbar() {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
         setNotifAbiertas(false);
       }
+      if (idiomaRef.current && !idiomaRef.current.contains(e.target as Node)) {
+        setIdiomaAbierto(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -66,9 +79,7 @@ export default function Navbar() {
 
   const marcarLeida = async (id: number) => {
     await api.patch(`/api/notificaciones/${id}/leer`).catch(() => {});
-    setNotificaciones((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, leida: true } : n))
-    );
+    setNotificaciones((prev) => prev.map((n) => (n.id === id ? { ...n, leida: true } : n)));
     setNoLeidas((prev) => Math.max(0, prev - 1));
   };
 
@@ -102,6 +113,33 @@ export default function Navbar() {
     </svg>
   );
 
+  const SelectorIdioma = () => (
+    <div className="relative" ref={idiomaRef}>
+      <button
+        onClick={() => setIdiomaAbierto(!idiomaAbierto)}
+        className="flex items-center gap-1 text-sm text-espuma/80 transition-colors hover:text-crema"
+      >
+        <span>{FLAG[locale as Locale]}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {idiomaAbierto && (
+        <div className="absolute right-0 top-8 z-50 w-36 rounded-lg border border-linea bg-navbar shadow-lg overflow-hidden">
+          {(["es", "en", "de"] as Locale[]).map((l) => (
+            <button
+              key={l}
+              onClick={() => { setLocale(l); setIdiomaAbierto(false); }}
+              className={`flex w-full items-center px-4 py-2.5 text-sm transition-colors hover:bg-espuma/10 ${locale === l ? "text-crema font-medium" : "text-espuma/80"}`}
+            >
+              {FLAG[l]}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <header className="sticky top-0 z-50 bg-navbar">
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-0">
@@ -116,21 +154,23 @@ export default function Navbar() {
 
         {/* Links desktop */}
         <div className="hidden items-center gap-8 text-sm md:flex">
-          <Link href="/recetas" className={linkClass("/recetas")}>Recetas</Link>
-          <Link href="/ranking" className={linkClass("/ranking")}>Ranking</Link>
-          {usuario && <Link href="/mis-recetas" className={linkClass("/mis-recetas")}>Mis recetas</Link>}
-          {usuario && <Link href="/cervezas/nueva" className={linkClass("/cervezas/nueva")}>Crear receta</Link>}
+          <Link href="/recetas" className={linkClass("/recetas")}>{t("recetas")}</Link>
+          <Link href="/ranking" className={linkClass("/ranking")}>{t("ranking")}</Link>
+          {usuario && <Link href="/mis-recetas" className={linkClass("/mis-recetas")}>{t("misRecetas")}</Link>}
+          {usuario && <Link href="/cervezas/nueva" className={linkClass("/cervezas/nueva")}>{t("crearReceta")}</Link>}
         </div>
 
         {/* Acciones desktop */}
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-6 md:flex">
+          <SelectorIdioma />
+
           {usuario ? (
             <>
               <div className="relative" ref={notifRef}>
                 <button
                   onClick={() => setNotifAbiertas(!notifAbiertas)}
                   className="relative flex items-center text-espuma/80 transition-colors hover:text-crema"
-                  title="Notificaciones"
+                  title={t("notificaciones")}
                 >
                   <IconoCampana />
                   {noLeidas > 0 && (
@@ -143,7 +183,7 @@ export default function Navbar() {
                 {notifAbiertas && (
                   <div className="absolute right-0 top-8 z-50 w-80 rounded-lg border border-linea bg-navbar shadow-lg">
                     <div className="flex items-center justify-between border-b border-espuma/10 px-4 py-3">
-                      <span className="text-sm font-medium text-crema">Notificaciones</span>
+                      <span className="text-sm font-medium text-crema">{t("notificaciones")}</span>
                       {noLeidas > 0 && (
                         <button onClick={marcarTodasLeidas} className="text-xs text-espuma/60 transition-colors hover:text-crema">
                           Marcar todas como leídas
@@ -188,12 +228,12 @@ export default function Navbar() {
                 )}
               </div>
 
-              <Link href="/perfil" className={linkClass("/perfil")}>Mi perfil</Link>
+              <Link href="/perfil" className={linkClass("/perfil")}>{t("miPerfil")}</Link>
               <div className="h-4 w-px bg-espuma/20" />
               <button
                 onClick={logout}
                 className="flex items-center gap-1.5 text-sm font-medium text-espuma/80 transition-colors hover:text-crema"
-                title="Cerrar sesión"
+                title={t("cerrarSesion")}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -204,8 +244,8 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/login" className={linkClass("/login")}>Entrar</Link>
-              <Link href="/registro" className={linkClass("/registro")}>Crear cuenta</Link>
+              <Link href="/login" className={linkClass("/login")}>{t("entrar")}</Link>
+              <Link href="/registro" className={linkClass("/registro")}>{t("crearCuenta")}</Link>
             </>
           )}
         </div>
@@ -237,12 +277,27 @@ export default function Navbar() {
         <div className="border-t border-espuma/10 bg-navbar md:hidden">
           <div className="mx-auto max-w-6xl px-6 py-4">
             <div className="flex flex-col gap-1">
-              <Link href="/recetas" onClick={cerrarMenu} className={linkMobileClass("/recetas")}>Recetas</Link>
-              <Link href="/ranking" onClick={cerrarMenu} className={linkMobileClass("/ranking")}>Ranking</Link>
-              {usuario && <Link href="/mis-recetas" onClick={cerrarMenu} className={linkMobileClass("/mis-recetas")}>Mis recetas</Link>}
-              {usuario && <Link href="/cervezas/nueva" onClick={cerrarMenu} className={linkMobileClass("/cervezas/nueva")}>Crear receta</Link>}
+              <Link href="/recetas" onClick={cerrarMenu} className={linkMobileClass("/recetas")}>{t("recetas")}</Link>
+              <Link href="/ranking" onClick={cerrarMenu} className={linkMobileClass("/ranking")}>{t("ranking")}</Link>
+              {usuario && <Link href="/mis-recetas" onClick={cerrarMenu} className={linkMobileClass("/mis-recetas")}>{t("misRecetas")}</Link>}
+              {usuario && <Link href="/cervezas/nueva" onClick={cerrarMenu} className={linkMobileClass("/cervezas/nueva")}>{t("crearReceta")}</Link>}
 
               <div className="my-2 border-t border-espuma/10" />
+
+              {/* Selector idioma móvil */}
+              <div className="flex gap-2 px-3 py-2">
+                {(["es", "en", "de"] as Locale[]).map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => setLocale(l)}
+                    className={`rounded-md px-2 py-1 text-xs transition-colors ${locale === l ? "bg-espuma/20 text-crema font-medium" : "text-espuma/60 hover:text-crema"}`}
+                  >
+                    {FLAG[l]}
+                  </button>
+                ))}
+              </div>
+
+              <div className="my-1 border-t border-espuma/10" />
 
               {usuario ? (
                 <>
@@ -255,9 +310,9 @@ export default function Navbar() {
                         </span>
                       )}
                     </span>
-                    Notificaciones {noLeidas > 0 && `(${noLeidas})`}
+                    {t("notificaciones")} {noLeidas > 0 && `(${noLeidas})`}
                   </Link>
-                  <Link href="/perfil" onClick={cerrarMenu} className={linkMobileClass("/perfil")}>Mi perfil</Link>
+                  <Link href="/perfil" onClick={cerrarMenu} className={linkMobileClass("/perfil")}>{t("miPerfil")}</Link>
                   <button
                     onClick={() => { logout(); cerrarMenu(); }}
                     className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-espuma/80 transition-colors hover:bg-espuma/10 hover:text-crema"
@@ -267,13 +322,13 @@ export default function Navbar() {
                       <polyline points="16 17 21 12 16 7" />
                       <line x1="21" y1="12" x2="9" y2="12" />
                     </svg>
-                    Cerrar sesión
+                    {t("cerrarSesion")}
                   </button>
                 </>
               ) : (
                 <div className="mt-1 flex flex-col gap-2">
-                  <Link href="/login" onClick={cerrarMenu} className={linkMobileClass("/login")}>Entrar</Link>
-                  <Link href="/registro" onClick={cerrarMenu} className={linkMobileClass("/registro")}>Crear cuenta</Link>
+                  <Link href="/login" onClick={cerrarMenu} className={linkMobileClass("/login")}>{t("entrar")}</Link>
+                  <Link href="/registro" onClick={cerrarMenu} className={linkMobileClass("/registro")}>{t("crearCuenta")}</Link>
                 </div>
               )}
             </div>

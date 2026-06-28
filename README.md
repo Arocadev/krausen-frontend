@@ -12,19 +12,22 @@
 
 ### ✨ Funcionalidades
 
-- 🏠 **Landing page** — presentación limpia con acceso directo a registro o explorar recetas
+- 🏠 **Landing page** — presentación limpia con logo y acceso directo a explorar recetas
 - 🔐 **Autenticación** — registro, login, cierre de sesión con JWT persistente
-- 🔑 **Gestión de contraseña** — cambio de contraseña con validación y ojito para ver/ocultar
-- 🍺 **Explorar recetas** — listado con buscador por nombre y filtros por estilo, alcohol e IBU
-- 📄 **Detalle de receta** — ingredientes, pasos de elaboración, me gustas, autor y fecha
-- ✏️ **Crear y editar recetas** — formulario con dropdown de estilos, ingredientes predefinidos y pasos
+- 🔑 **Gestión de contraseña** — cambio de contraseña, recuperación por email con Resend
+- 🍺 **Explorar recetas** — listado con buscador por nombre y filtros por estilo, alcohol, IBU, ingrediente y autor
+- 📄 **Detalle de receta** — ingredientes, pasos, datos técnicos con labels, me gustas, comentarios, autor y fecha
+- ✏️ **Crear y editar recetas** — formulario con dropdown de estilos, ingredientes predefinidos, pasos y subida de imagen
 - 🔀 **Fork de recetas** — crea tu versión basada en otra receta, con referencia al original
 - 🌳 **Árbol de versiones** — visualización del árbol de forks con la receta original y todas las derivadas
-- ❤️ **Me gusta** — dar y quitar me gusta con corazón animado y contador
-- 🏆 **Ranking mensual** — top 10 recetas más gustadas del mes con posiciones destacadas
+- ❤️ **Me gusta** — dar y quitar me gusta con contador en tiempo real
+- 🏆 **Ranking** — top 10 mensual, anual y global con selector de período
+- 💬 **Comentarios** — comentarios por receta con avatares Dicebear generados por username
+- 🔔 **Notificaciones** — dropdown en navbar con badge de no leídas, me gustas y forks
 - 🌡️ **Fermentación** — registro de temperaturas por slots configurables con gráfica de líneas (Recharts)
-- 👤 **Perfil** — datos del usuario y cambio de contraseña
+- 👤 **Perfil público** — página de usuario con sus recetas y me gustas
 - 📋 **Mis recetas** — tus recetas publicadas y las que te gustan en un solo sitio
+- 🌍 **Multiidioma** — interfaz disponible en Español, English y Deutsch con selector en navbar
 - 🔒 **Protección de rutas** — las páginas que requieren autenticación redirigen al login
 
 ---
@@ -33,11 +36,12 @@
 
 | Capa | Tecnología |
 |------|-----------|
-| Framework | Next.js 16 (App Router) |
+| Framework | Next.js 15 (App Router) |
 | Lenguaje | TypeScript |
 | Estilos | Tailwind CSS 4 |
 | HTTP | Axios |
 | Gráficas | Recharts |
+| i18n | next-intl |
 | Tipografía | Lora (títulos) + Inter (cuerpo) |
 | Despliegue | Vercel (pendiente) |
 
@@ -68,32 +72,46 @@ Tipografía: **Lora** (serif) para títulos — evoca etiquetas de cerveza artes
 
 ```
 app/
-├── page.tsx                  # Landing page
-├── layout.tsx                # Layout con AuthProvider y Navbar
-├── globals.css               # Paleta de colores y estilos base
-├── login/page.tsx            # Página de login
-├── registro/page.tsx         # Página de registro
-├── perfil/page.tsx           # Perfil y cambio de contraseña
-├── recetas/page.tsx          # Explorar recetas con filtros
-├── ranking/page.tsx          # Ranking mensual
-├── mis-recetas/page.tsx      # Mis recetas y favoritas
+├── page.tsx                       # Landing page
+├── layout.tsx                     # Layout con AuthProvider, LocaleProvider y Navbar
+├── globals.css                    # Paleta de colores y estilos base
+├── login/page.tsx                 # Página de login
+├── registro/page.tsx              # Página de registro
+├── recuperar-password/page.tsx    # Recuperación de contraseña
+├── reset-password/page.tsx        # Restablecer contraseña
+├── perfil/page.tsx                # Perfil y cambio de contraseña
+├── perfil/[username]/page.tsx     # Perfil público de usuario
+├── recetas/page.tsx               # Explorar recetas con filtros
+├── ranking/page.tsx               # Ranking mensual, anual y global
+├── mis-recetas/page.tsx           # Mis recetas y favoritas
+├── notificaciones/page.tsx        # Notificaciones (móvil)
+├── faq/page.tsx                   # Preguntas frecuentes
+├── aviso-legal/page.tsx           # Aviso legal
 └── cervezas/
-    ├── nueva/page.tsx        # Crear receta
+    ├── nueva/page.tsx             # Crear receta
     └── [id]/
-        ├── page.tsx          # Detalle de receta
-        └── editar/page.tsx   # Editar receta
+        ├── page.tsx               # Detalle de receta
+        └── editar/page.tsx        # Editar receta
 
 components/
-├── Navbar.tsx                # Barra de navegación
+├── Navbar.tsx                # Barra de navegación con selector de idioma
+├── Footer.tsx                # Pie de página
 ├── PasswordInput.tsx         # Input de contraseña con ojito
 ├── Temperaturas.tsx          # Registro y gráfica de fermentación
-└── ArbolForks.tsx            # Árbol visual de versiones
+├── ArbolForks.tsx            # Árbol visual de versiones
+└── Comentarios.tsx           # Sección de comentarios
 
 context/
-└── AuthContext.tsx            # Contexto global de autenticación
+├── AuthContext.tsx            # Contexto global de autenticación
+└── LocaleContext.tsx          # Contexto global de idioma
+
+messages/
+├── es.json                   # Traducciones en español
+├── en.json                   # Traducciones en inglés
+└── de.json                   # Traducciones en alemán
 
 lib/
-└── api.ts                     # Cliente Axios configurado con JWT
+└── api.ts                    # Cliente Axios configurado con JWT
 ```
 
 ---
@@ -105,13 +123,19 @@ lib/
 | `/` | Landing page | Público |
 | `/login` | Iniciar sesión | Público |
 | `/registro` | Crear cuenta | Público |
+| `/recuperar-password` | Recuperar contraseña | Público |
+| `/reset-password` | Restablecer contraseña | Público |
 | `/recetas` | Explorar recetas con filtros | Público |
-| `/ranking` | Ranking mensual por likes | Público |
+| `/ranking` | Ranking mensual, anual y global | Público |
 | `/cervezas/{id}` | Detalle de receta | Público |
+| `/perfil/{username}` | Perfil público de usuario | Público |
+| `/faq` | Preguntas frecuentes | Público |
+| `/aviso-legal` | Aviso legal | Público |
 | `/cervezas/nueva` | Crear receta | Autenticado |
 | `/cervezas/{id}/editar` | Editar receta | Autor (sin forks) |
 | `/mis-recetas` | Mis recetas y favoritas | Autenticado |
 | `/perfil` | Perfil y cambio de contraseña | Autenticado |
+| `/notificaciones` | Notificaciones | Autenticado |
 
 ---
 
@@ -119,7 +143,7 @@ lib/
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/krausen-beer/krausen-frontend
+git clone https://github.com/ArocaDev/krausen-frontend
 cd krausen-frontend
 
 # Instalar dependencias
@@ -139,9 +163,8 @@ Disponible en `http://localhost:3000`
 
 | Componente | Repositorio |
 |---|---|
-| Backend | [krausen-backend](https://github.com/krausen-beer/krausen-backend) |
-| Frontend (este repo) | [krausen-frontend](https://github.com/krausen-beer/krausen-frontend) |
-| Bot de Telegram | [audio-to-trello-bot](https://github.com/krausen-beer/audio-to-trello-bot) |
+| Backend | [krausen-backend](https://github.com/ArocaDev/krausen-backend) |
+| Frontend (este repo) | [krausen-frontend](https://github.com/ArocaDev/krausen-frontend) |
 
 ---
 
@@ -153,19 +176,22 @@ Disponible en `http://localhost:3000`
 
 ### ✨ Features
 
-- 🏠 **Landing page** — clean presentation with direct access to registration or recipe browsing
+- 🏠 **Landing page** — clean presentation with logo and direct access to explore recipes
 - 🔐 **Authentication** — registration, login, logout with persistent JWT
-- 🔑 **Password management** — password change with validation and show/hide toggle
-- 🍺 **Explore recipes** — listing with search by name and filters by style, ABV and IBU
-- 📄 **Recipe detail** — ingredients, brewing steps, likes, author and date
-- ✏️ **Create and edit recipes** — form with style dropdown, predefined ingredients and steps
+- 🔑 **Password management** — password change, email recovery with Resend
+- 🍺 **Explore recipes** — listing with search by name and filters by style, ABV, IBU, ingredient and author
+- 📄 **Recipe detail** — ingredients, brewing steps, technical data with labels, likes, comments, author and date
+- ✏️ **Create and edit recipes** — form with style dropdown, predefined ingredients, steps and image upload
 - 🔀 **Recipe forking** — create your version based on another recipe, with reference to the original
 - 🌳 **Version tree** — visual fork tree showing the original recipe and all derived versions
-- ❤️ **Likes** — give and remove likes with animated heart and counter
-- 🏆 **Monthly ranking** — top 10 most liked recipes with highlighted positions
+- ❤️ **Likes** — give and remove likes with real-time counter
+- 🏆 **Ranking** — top 10 monthly, yearly and all-time with period selector
+- 💬 **Comments** — comments per recipe with Dicebear avatars generated by username
+- 🔔 **Notifications** — navbar dropdown with unread badge, likes and forks
 - 🌡️ **Fermentation** — temperature logging by configurable slots with line chart (Recharts)
-- 👤 **Profile** — user data and password change
+- 👤 **Public profile** — user page with their recipes and likes
 - 📋 **My recipes** — your published recipes and liked ones in one place
+- 🌍 **Multilanguage** — interface available in Spanish, English and German with navbar selector
 - 🔒 **Route protection** — pages requiring authentication redirect to login
 
 ---
@@ -174,11 +200,12 @@ Disponible en `http://localhost:3000`
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | Next.js 16 (App Router) |
+| Framework | Next.js 15 (App Router) |
 | Language | TypeScript |
 | Styling | Tailwind CSS 4 |
 | HTTP | Axios |
 | Charts | Recharts |
+| i18n | next-intl |
 | Typography | Lora (headings) + Inter (body) |
 | Deployment | Vercel (pending) |
 
@@ -187,7 +214,7 @@ Disponible en `http://localhost:3000`
 ### 🚀 Getting Started
 
 ```bash
-git clone https://github.com/krausen-beer/krausen-frontend
+git clone https://github.com/ArocaDev/krausen-frontend
 cd krausen-frontend
 npm install
 npm run dev

@@ -99,6 +99,7 @@ components/
 ├── PasswordInput.tsx         # Input de contraseña con ojito
 ├── Temperaturas.tsx          # Registro y gráfica de fermentación
 ├── ArbolForks.tsx            # Árbol visual de versiones
+├── AppShell.tsx              # Wrapper que oculta UI hasta resolver auth
 └── Comentarios.tsx           # Sección de comentarios
 
 context/

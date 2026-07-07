@@ -8,6 +8,8 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import Temperaturas from "@/components/Temperaturas";
 import Comentarios from "@/components/Comentarios";
+import { SkeletonDetalle } from "@/components/Skeleton";
+import { useToast } from "@/components/Toast";
 
 type Ingrediente = {
   ingrediente: { id: number; nombre: string; tipo: string };
@@ -39,6 +41,7 @@ export default function DetalleCervezaPage() {
   const { id } = useParams();
   const { usuario } = useAuth();
   const t = useTranslations("detalle");
+  const { mostrar, ToastComponent } = useToast();
   const [cerveza, setCerveza] = useState<Cerveza | null>(null);
   const [cargando, setCargando] = useState(true);
   const [totalLikes, setTotalLikes] = useState(0);
@@ -50,7 +53,7 @@ export default function DetalleCervezaPage() {
   const cargarDatos = () => {
     api.get(`/api/cervezas/${id}`)
       .then((res) => { setCerveza(res.data); setActiva(res.data.activa); })
-      .catch(() => {})
+      .catch(() => mostrar("No se pudo cargar la receta.", "error"))
       .finally(() => setCargando(false));
     api.get(`/api/cervezas/${id}/me-gusta`).then((res) => setTotalLikes(res.data.total)).catch(() => {});
     api.get(`/api/cervezas/tiene-forks/${id}`).then((res) => setTieneForks(res.data.tiene_forks)).catch(() => {});
@@ -80,8 +83,9 @@ export default function DetalleCervezaPage() {
         setDado(true); setTotalLikes((prev) => prev + 1);
       }
     } catch (err: any) {
-      const msg = err.response?.data?.detail || "";
-      if (msg.includes("propia")) alert(msg);
+      const detalle = err.response?.data?.detalle;
+      const msg = typeof detalle === "string" ? detalle : err.response?.data?.error || "Error al procesar el me gusta";
+      mostrar(msg, "error");
     } finally { setEnviandoLike(false); }
   };
 
@@ -89,14 +93,17 @@ export default function DetalleCervezaPage() {
     try {
       const res = await api.patch(`/api/cervezas/${id}/activacion`);
       setActiva(res.data.activa);
-    } catch {}
+      mostrar(res.data.activa ? "Receta reactivada" : "Receta desactivada", "info");
+    } catch {
+      mostrar("No se pudo cambiar el estado de la receta.", "error");
+    }
   };
 
   const scrollComentarios = () => {
     document.getElementById("comentarios")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  if (cargando) return <p className="py-24 text-center text-tostado">{t("cargando")}</p>;
+  if (cargando) return <SkeletonDetalle />;
 
   if (!cerveza) {
     return (
@@ -109,6 +116,7 @@ export default function DetalleCervezaPage() {
 
   return (
     <main>
+      {ToastComponent}
       <section className="border-b border-linea bg-crema">
         <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
 

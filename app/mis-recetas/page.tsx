@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { SkeletonGrid } from "@/components/Skeleton";
+import { useToast } from "@/components/Toast";
 
 type Cerveza = {
   id: number;
@@ -23,6 +25,7 @@ export default function MisRecetasPage() {
   const router = useRouter();
   const { usuario, cargando } = useAuth();
   const t = useTranslations("misRecetas");
+  const { mostrar, ToastComponent } = useToast();
   const [mias, setMias] = useState<Cerveza[]>([]);
   const [favoritas, setFavoritas] = useState<Cerveza[]>([]);
   const [cargandoDatos, setCargandoDatos] = useState(true);
@@ -35,7 +38,7 @@ export default function MisRecetasPage() {
     if (usuario) {
       Promise.all([api.get("/api/cervezas/mis-recetas"), api.get("/api/cervezas/me-gustan")])
         .then(([m, f]) => { setMias(m.data); setFavoritas(f.data); })
-        .catch(() => {})
+        .catch(() => mostrar("No se pudieron cargar tus recetas.", "error"))
         .finally(() => setCargandoDatos(false));
     }
   }, [usuario]);
@@ -60,9 +63,10 @@ export default function MisRecetasPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-14">
+      {ToastComponent}
       <h1 className="font-[family-name:var(--font-lora)] text-3xl font-semibold text-malta">{t("titulo")}</h1>
       {cargandoDatos ? (
-        <p className="py-16 text-center text-tostado">{t("cargando")}</p>
+        <SkeletonGrid n={6} />
       ) : (
         <>
           <section className="mt-8">
@@ -70,6 +74,9 @@ export default function MisRecetasPage() {
               <div className="rounded-lg border border-dashed border-linea bg-white py-16 text-center">
                 <p className="font-[family-name:var(--font-lora)] text-xl text-malta">{t("sinRecetas")}</p>
                 <p className="mt-2 text-tostado">{t("sinRecetasDesc")}</p>
+                <Link href="/cervezas/nueva" className="mt-4 inline-block text-sm font-medium text-ambar-oscuro hover:underline">
+                  Crear mi primera receta →
+                </Link>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

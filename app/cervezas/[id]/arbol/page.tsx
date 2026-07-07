@@ -5,21 +5,24 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import ArbolForks from "@/components/ArbolForks";
+import { useToast } from "@/components/Toast";
 
 export default function ArbolPage() {
   const { id } = useParams();
+  const { mostrar, ToastComponent } = useToast();
   const [nombre, setNombre] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
       api.get(`/api/cervezas/${id}`)
         .then((res) => setNombre(res.data.nombre))
-        .catch(() => {});
+        .catch(() => mostrar("No se pudo cargar la receta.", "error"));
     }
   }, [id]);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+      {ToastComponent}
       <Link href={`/cervezas/${id}`} className="inline-flex items-center gap-1.5 text-sm text-tostado transition-colors hover:text-malta">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="15 18 9 12 15 6" />

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/components/Toast";
 
 type Notificacion = {
   id: number;
@@ -17,10 +18,27 @@ type Notificacion = {
   actor_username: string | null;
 };
 
+function SkeletonNotificaciones() {
+  return (
+    <ul className="mt-6 divide-y divide-linea rounded-lg border border-linea bg-white animate-pulse">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <li key={i} className="flex items-start gap-4 px-5 py-4">
+          <div className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-ambar/20" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-3/4 rounded bg-linea" />
+            <div className="h-3 w-16 rounded bg-linea/60" />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function NotificacionesPage() {
   const { usuario } = useAuth();
   const router = useRouter();
   const t = useTranslations("notificaciones");
+  const { mostrar, ToastComponent } = useToast();
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
   const [noLeidas, setNoLeidas] = useState(0);
   const [cargando, setCargando] = useState(true);
@@ -29,7 +47,7 @@ export default function NotificacionesPage() {
     if (!usuario) { router.push("/login"); return; }
     api.get("/api/notificaciones/")
       .then((res) => { setNotificaciones(res.data.notificaciones); setNoLeidas(res.data.no_leidas); })
-      .catch(() => {})
+      .catch(() => mostrar("No se pudieron cargar las notificaciones.", "error"))
       .finally(() => setCargando(false));
   }, [usuario]);
 
@@ -40,9 +58,13 @@ export default function NotificacionesPage() {
   };
 
   const marcarTodasLeidas = async () => {
-    await api.patch("/api/notificaciones/leer-todas").catch(() => {});
-    setNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })));
-    setNoLeidas(0);
+    try {
+      await api.patch("/api/notificaciones/leer-todas");
+      setNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })));
+      setNoLeidas(0);
+    } catch {
+      mostrar("No se pudieron marcar las notificaciones.", "error");
+    }
   };
 
   const tiempoRelativo = (fecha: string) => {
@@ -57,6 +79,7 @@ export default function NotificacionesPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-14">
+      {ToastComponent}
       <div className="flex items-center justify-between">
         <h1 className="font-[family-name:var(--font-lora)] text-3xl font-semibold text-malta">{t("titulo")}</h1>
         {noLeidas > 0 && (
@@ -65,7 +88,7 @@ export default function NotificacionesPage() {
       </div>
 
       {cargando ? (
-        <p className="py-16 text-center text-tostado">{t("cargando")}</p>
+        <SkeletonNotificaciones />
       ) : notificaciones.length === 0 ? (
         <div className="mt-8 rounded-lg border border-dashed border-linea bg-white py-16 text-center">
           <p className="font-[family-name:var(--font-lora)] text-xl text-malta">{t("sinNotificaciones")}</p>

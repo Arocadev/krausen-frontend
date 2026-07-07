@@ -39,7 +39,12 @@ export default function RegistroPage() {
       login(res.data.access_token);
       router.push("/");
     } catch (err: any) {
-      setError(err.response?.data?.detail || "No se pudo crear la cuenta");
+      const detalle = err.response?.data?.detalle;
+      if (Array.isArray(detalle)) {
+        setError(detalle.map((d: any) => d.mensaje).join(", "));
+      } else {
+        setError(detalle || err.response?.data?.detail || "No se pudo crear la cuenta");
+      }
     } finally {
       setEnviando(false);
     }

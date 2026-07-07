@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import { api } from "@/lib/api";
+import { useTranslations } from "next-intl";
+import { SkeletonGrid } from "@/components/Skeleton";
+import { useToast } from "@/components/Toast";
 
 type Cerveza = {
   id: number;
@@ -31,6 +33,7 @@ type Perfil = {
 export default function PerfilPublicoPage() {
   const { username } = useParams();
   const t = useTranslations("perfilPublico");
+  const { mostrar, ToastComponent } = useToast();
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [cargando, setCargando] = useState(true);
   const [tab, setTab] = useState<"recetas" | "me_gustas">("recetas");
@@ -39,20 +42,12 @@ export default function PerfilPublicoPage() {
     if (!username) return;
     api.get(`/api/usuarios/${username}`)
       .then((res) => setPerfil(res.data))
-      .catch(() => {})
+      .catch(() => mostrar("No se pudo cargar el perfil.", "error"))
       .finally(() => setCargando(false));
   }, [username]);
 
-  if (cargando) return <p className="py-24 text-center text-tostado">{t("cargando")}</p>;
-
-  if (!perfil) return (
-    <main className="mx-auto max-w-3xl px-6 py-24 text-center">
-      <h1 className="font-[family-name:var(--font-lora)] text-2xl text-malta">{t("noEncontrado")}</h1>
-      <Link href="/" className="mt-4 inline-block text-ambar-oscuro hover:underline">{t("volver")}</Link>
-    </main>
-  );
-
-  const avatarUrl = (u: string) => `https://api.dicebear.com/7.x/initials/svg?seed=${u}&backgroundColor=c8861b&textColor=ffffff&fontSize=40`;
+  const avatarUrl = (u: string) =>
+    `https://api.dicebear.com/7.x/initials/svg?seed=${u}&backgroundColor=c8861b&textColor=ffffff&fontSize=40`;
 
   const TarjetaCerveza = ({ c }: { c: Cerveza }) => (
     <Link href={`/cervezas/${c.id}`} className="group rounded-lg border border-linea bg-white p-5 transition-all hover:border-ambar/50 hover:shadow-[0_2px_12px_rgba(92,58,33,0.08)]">
@@ -68,10 +63,46 @@ export default function PerfilPublicoPage() {
     </Link>
   );
 
+  if (cargando) {
+    return (
+      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+        <div className="animate-pulse">
+          <div className="flex items-start gap-5">
+            <div className="h-16 w-16 shrink-0 rounded-full bg-ambar/15" />
+            <div className="flex-1 space-y-2 pt-1">
+              <div className="h-8 w-40 rounded bg-linea" />
+              <div className="h-4 w-56 rounded bg-linea/60" />
+              <div className="mt-3 flex gap-6">
+                <div className="h-4 w-20 rounded bg-linea/60" />
+                <div className="h-4 w-24 rounded bg-linea/60" />
+              </div>
+            </div>
+          </div>
+          <div className="mt-10 flex gap-4 border-b border-linea pb-px">
+            <div className="h-5 w-24 rounded bg-linea/60" />
+            <div className="h-5 w-24 rounded bg-linea/60" />
+          </div>
+        </div>
+        <SkeletonGrid n={6} />
+      </main>
+    );
+  }
+
+  if (!perfil) {
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-24 text-center">
+        {ToastComponent}
+        <h1 className="font-[family-name:var(--font-lora)] text-2xl text-malta">{t("noEncontrado")}</h1>
+        <Link href="/" className="mt-4 inline-block text-ambar-oscuro hover:underline">{t("volver")}</Link>
+      </main>
+    );
+  }
+
   const lista = tab === "recetas" ? perfil.recetas : perfil.me_gustas;
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+      {ToastComponent}
       <div className="flex items-start gap-5">
         <img src={avatarUrl(perfil.username)} alt={perfil.username} className="h-16 w-16 shrink-0 rounded-full" />
         <div>

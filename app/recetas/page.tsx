@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { api } from "@/lib/api";
+import { SkeletonGrid } from "@/components/Skeleton";
+import { useToast } from "@/components/Toast";
 
 const LIMIT = 6;
 
@@ -23,6 +25,7 @@ type Cerveza = {
 export default function RecetasPage() {
   const router = useRouter();
   const t = useTranslations("recetas");
+  const { mostrar, ToastComponent } = useToast();
   const [cervezas, setCervezas] = useState<Cerveza[]>([]);
   const [ultimas, setUltimas] = useState<Cerveza[]>([]);
   const [total, setTotal] = useState(0);
@@ -49,7 +52,7 @@ export default function RecetasPage() {
         setTotal(res.data.total);
         if (pag === 0) setUltimas(res.data.cervezas.slice(0, 3));
       })
-      .catch(() => {})
+      .catch(() => mostrar("No se pudieron cargar las recetas. Inténtalo de nuevo.", "error"))
       .finally(() => setCargando(false));
   };
 
@@ -68,7 +71,7 @@ export default function RecetasPage() {
     params.set("limit", String(LIMIT));
     api.get(`/api/cervezas/buscar?${params.toString()}`)
       .then((res) => { setCervezas(res.data.cervezas); setTotal(res.data.total); })
-      .catch(() => {})
+      .catch(() => mostrar("Error al buscar recetas. Inténtalo de nuevo.", "error"))
       .finally(() => setCargando(false));
   };
 
@@ -131,10 +134,10 @@ export default function RecetasPage() {
         </button>
         <div className="flex gap-1">
           {Array.from({ length: totalPaginas }, (_, i) => {
-            const mostrar = i === 0 || i === totalPaginas - 1 || Math.abs(i - pagina) <= 1;
-            const esEllipsis = !mostrar && (i === 1 || i === totalPaginas - 2);
+            const mostrarBtn = i === 0 || i === totalPaginas - 1 || Math.abs(i - pagina) <= 1;
+            const esEllipsis = !mostrarBtn && (i === 1 || i === totalPaginas - 2);
             if (esEllipsis) return <span key={i} className="flex h-9 w-9 items-center justify-center text-sm text-tostado/50">…</span>;
-            if (!mostrar) return null;
+            if (!mostrarBtn) return null;
             return (
               <button key={i} onClick={() => handlePagina(i)} className={`flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors ${i === pagina ? "bg-ambar text-white" : "border border-linea bg-white text-tostado hover:border-ambar hover:text-ambar-oscuro"}`}>
                 {i + 1}
@@ -151,6 +154,7 @@ export default function RecetasPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+      {ToastComponent}
       <h1 className="font-[family-name:var(--font-lora)] text-3xl font-semibold text-malta sm:text-4xl">{t("titulo")}</h1>
 
       <div className="mt-6 flex gap-2 sm:mt-8 sm:gap-3">
@@ -246,12 +250,17 @@ export default function RecetasPage() {
           <span className="text-sm text-tostado">{total} {total !== 1 ? t("totalPlural") : t("total")}</span>
         </div>
         {cargando ? (
-          <p className="py-16 text-center text-tostado">{t("cargando")}</p>
+          <SkeletonGrid n={6} />
         ) : cervezas.length === 0 ? (
           <div className="mt-6 rounded-lg border border-dashed border-linea bg-white py-16 text-center">
             <p className="font-[family-name:var(--font-lora)] text-xl text-malta">
               {hayFiltros ? t("sinResultados") : t("sinRecetas")}
             </p>
+            {hayFiltros && (
+              <button onClick={limpiarFiltros} className="mt-4 text-sm font-medium text-ambar-oscuro hover:underline">
+                {t("limpiarFiltros")}
+              </button>
+            )}
           </div>
         ) : (
           <>

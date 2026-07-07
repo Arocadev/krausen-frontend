@@ -26,7 +26,7 @@ export default function LoginPage() {
       login(res.data.access_token);
       router.push("/");
     } catch (err: any) {
-      setError(err.response?.data?.detail || "No se pudo iniciar sesión");
+      setError(err.response?.data?.detalle || err.response?.data?.detail || "No se pudo iniciar sesión");
     } finally {
       setEnviando(false);
     }

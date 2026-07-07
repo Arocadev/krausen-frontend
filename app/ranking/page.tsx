@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { api } from "@/lib/api";
+import { SkeletonRanking } from "@/components/Skeleton";
+import { useToast } from "@/components/Toast";
 
 type EntradaRanking = {
   posicion: number;
@@ -18,6 +20,7 @@ type Periodo = "mensual" | "anual" | "global";
 
 export default function RankingPage() {
   const t = useTranslations("ranking");
+  const { mostrar, ToastComponent } = useToast();
   const [ranking, setRanking] = useState<EntradaRanking[]>([]);
   const [cargando, setCargando] = useState(true);
   const [periodo, setPeriodo] = useState<Periodo>("mensual");
@@ -26,7 +29,7 @@ export default function RankingPage() {
     setCargando(true);
     api.get(`/api/ranking/${periodo}`)
       .then((res) => setRanking(res.data))
-      .catch(() => {})
+      .catch(() => mostrar("No se pudo cargar el ranking.", "error"))
       .finally(() => setCargando(false));
   }, [periodo]);
 
@@ -44,6 +47,7 @@ export default function RankingPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-14">
+      {ToastComponent}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="font-[family-name:var(--font-lora)] text-4xl font-semibold text-malta">{t("titulo")}</h1>
@@ -61,12 +65,11 @@ export default function RankingPage() {
       </div>
 
       {cargando ? (
-        <div className="min-h-[300px]">
-          <p className="py-16 text-center text-tostado">{t("cargando")}</p>
-        </div>
+        <SkeletonRanking />
       ) : ranking.length === 0 ? (
         <div className="mt-10 min-h-[300px] rounded-lg border border-dashed border-linea bg-white py-20 text-center">
           <p className="font-[family-name:var(--font-lora)] text-xl text-malta">{sinLikes}</p>
+          <p className="mt-2 text-sm text-tostado">Sé el primero en conseguir me gustas este periodo.</p>
         </div>
       ) : (
         <ol className="mt-8 min-h-[300px] space-y-3">
